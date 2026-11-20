@@ -1,11 +1,11 @@
 # Backend wajib: FastAPI + SQLAlchemy ORM
 fastapi
-uvicorn[standard]
+uvicorn
 SQLAlchemy
 pydantic
 
-# Driver PostgreSQL (boleh diganti driver MySQL/MariaDB lewat DATABASE_URL)
-psycopg[binary]
+# Driver PostgreSQL murni Python (tidak butuh DLL/C++ Build Tools)
+pg8000
 
 # Membaca file .env agar tidak perlu set environment variable manual
 python-dotenv

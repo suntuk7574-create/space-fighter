@@ -52,13 +52,13 @@ Kalau belum punya repo: buat di github.com → **New repository** → jangan cen
 1. Buka https://neon.tech → daftar / Login dengan GitHub.
 2. **Create project** → nama bebas, region pilih yang dekat.
 3. Setelah jadi, buka **Connection Details** → salin connection string.
-4. Ubah menjadi format SQLAlchemy driver `psycopg` dan tambahkan SSL:
+4. Ubah menjadi format SQLAlchemy driver `pg8000` dan tambahkan SSL:
 
 ```
-DATABASE_URL=postgresql+psycopg://USER:PASSWORD@ep-xxx.region.aws.neon.tech/spacefighter?sslmode=require
+DATABASE_URL=postgresql+pg8000://USER:PASSWORD@ep-xxx.region.aws.neon.tech/spacefighter?sslmode=require
 ```
 
-> Ganti `postgres://` di awal dengan `postgresql+psycopg://`, lalu tambahkan `?sslmode=require` di akhir.
+> Ganti `postgres://` di awal dengan `postgresql+pg8000://`, lalu tambahkan `?sslmode=require` di akhir.
 
 Alternatif: **Supabase** (Database → Connection string → URI) atau **ElephantSQL**.
 

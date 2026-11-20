@@ -38,7 +38,7 @@ Sebaiknya RAM kosong **minimal 1,5 GB** sebelum install.
 ## 1. Ringkasan yang akan dipasang
 
 1. PostgreSQL Server + pgAdmin + Command Line Tools
-2. Library Python: `fastapi`, `uvicorn`, `SQLAlchemy`, `pydantic`, `psycopg[binary]`, `python-dotenv`, `pytest`
+2. Library Python: `fastapi`, `uvicorn`, `SQLAlchemy`, `pydantic`, `pg8000`, `python-dotenv`, `pytest`
 
 Perkiraan ruang disk: **~500 MB – 1 GB**. Disk kamu masih ~375 GB, jadi aman.
 
@@ -118,7 +118,7 @@ notepad .env
 Ubah baris `DATABASE_URL` menjadi:
 
 ```
-DATABASE_URL=postgresql+psycopg://sf_user:sf_pass@localhost:5432/spacefighter
+DATABASE_URL=postgresql+pg8000://sf_user:sf_pass@localhost:5432/spacefighter
 ```
 
 Simpan. Jangan pernah meng-commit file `.env` ke Git (sudah ada `.gitignore`).
@@ -137,7 +137,7 @@ python -m pip install -r requirements.txt
 Cek berhasil:
 
 ```powershell
-python -m pip show fastapi SQLAlchemy psycopg python-dotenv
+python -m pip show fastapi SQLAlchemy pg8000 python-dotenv
 ```
 
 ---
@@ -230,7 +230,7 @@ Lalu:
 | `password authentication failed` | Password di `.env` salah | Samakan dengan password saat install |
 | `connection refused` | Service DB mati | `Get-Service postgresql*` lalu `Start-Service ...` |
 | `database "spacefighter" does not exist` | DB belum dibuat | Ulangi langkah 3 |
-| `psycopg` gagal install | pip lama / Python 32-bit | `python -m pip install -U pip`; pastikan Python 64-bit |
+| `pg8000` gagal install | pip lama / Python 32-bit | `python -m pip install -U pip`; pastikan Python 64-bit |
 | Port 5432 bentrok | Ada DB lain | Ganti port & URL, mis. `localhost:5433` |
 | Frontend “Server offline” | Backend belum jalan / URL salah | Jalankan uvicorn, cek kolom API |
 | CORS error | Backend tidak aktif | Pastikan `http://localhost:8000/health` ok |
