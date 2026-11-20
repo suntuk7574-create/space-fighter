@@ -9,13 +9,13 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 ## ✨ Fitur
 
 - Arena luar angkasa 3D: cincin orbit, nebula, planet bercincin, sabuk asteroid, bintang, dan debu kosmik (bukan grid datar).
-- 3 spaceship futuristik: **Vanguard**, **Raptor**, **Phantom**.
+- 6 spaceship futuristik dengan animasi 3D: **Vanguard**, **Raptor**, **Phantom**, plus premium **SPECTRE** (mini & paling lincah), **NOVA** (sayap lebar bercahaya), dan **TITAN** (kapaltempur besar, 4 mesin). Kecepatan & ukuran tiap pesawat berbeda; premium dibeli di Shop dengan koin.
 - 5 senjata dengan perilaku berbeda: **Pulse Cannon**, **Twin Blaster**, **Ion Lance** (tembus 3 musuh), **Nova Scatter** (5 peluru), **Plasma Core** (damage 2).
 - Musuh kumbang alien: **Scarab**, **Stag Beetle**, dan **Rhino Beetle** (boss tiap wave ke-5).
 - **Seed harian** deterministik (SHA-256 + LCG) sehingga pola spawn sama untuk semua pemain.
 - Akun, koin, inventory, item, riwayat sesi, dan **leaderboard global** tersimpan di database relasional.
 - **Login pakai email + password** (email unik, username dibuat otomatis). Sesi tersimpan di browser → **auto-login**, tidak perlu login lagi saat membuka ulang link di perangkat yang sama.
-- Radar/mini-map sektor, efek partikel, glow, dan kontrol sentuh.
+- Radar/mini-map sektor, efek partikel, glow, dan kontrol: keyboard (A/D, ←/→, SPACE), tombol sentuh ◀ ▶ 🔫 di HP, atau geser jari untuk mengarahkan pesawat. Tampilan game melebar penuh di layar HP + tombol layar penuh.
 - Halaman login/daftar bergaya landing page (orbit animasi, tab Login/Daftar) dan HUD game yang dipoles.
 - **Admin console khusus satu akun**: statistik global + tabel pemain, skor, dan sesi. Dilindungi token HMAC 24 jam.
 

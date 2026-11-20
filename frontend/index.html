@@ -84,7 +84,7 @@
   }
   .hud b { color: var(--cyan); font-variant-numeric: tabular-nums; }
   .game-wrap { position: relative; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 0 40px rgba(56,232,255,.12); }
-  #scene { width: 100%; height: auto; display: block; background: #02040f; touch-action: none; }
+  #scene { width: 100%; height: auto; aspect-ratio: 960 / 600; display: block; background: #02040f; touch-action: none; }
   #minimap {
     position: absolute; right: 12px; top: 12px; width: 168px; height: 112px;
     border: 1px solid rgba(56,232,255,.4); border-radius: 10px;
@@ -96,6 +96,9 @@
     padding: 6px 10px; border-radius: 8px; pointer-events: none;
   }
   .hint { text-align: center; color: var(--muted); font-size: 12px; margin: 10px 0 0; }
+  .game-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  .game-wrap:fullscreen { width: 100vw; height: 100vh; border: 0; border-radius: 0; }
+  .game-wrap:fullscreen #scene { width: 100vw; height: 100vh; }
 
   .item {
     display: grid; grid-template-columns: 1fr auto; gap: 4px 12px;
@@ -125,7 +128,27 @@
     box-shadow: 0 0 22px color-mix(in srgb, var(--accent, var(--cyan)) 35%, transparent);
     background: rgba(20,36,80,.9);
   }
+  .loadout-card.locked { opacity: .62; border-style: dashed; }
+  .loadout-card.locked b { color: var(--muted); }
   .loadout-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin: 6px 0 4px; text-transform: uppercase; }
+
+  /* Shop pesawat + kontrol sentuh HP */
+  .ship-shop { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 10px 0 16px; }
+  .ship-shop .item { align-items: center; }
+  .ship-shop .ship-badge { font-size: 22px; filter: drop-shadow(0 0 10px currentColor); }
+  .touch-controls {
+    display: none; gap: 10px; justify-content: space-between; align-items: center;
+    margin-top: 10px; user-select: none; -webkit-user-select: none;
+  }
+  .touch-controls button {
+    flex: 1; min-height: 58px; font-size: 22px; touch-action: none;
+    background: rgba(9,18,44,.9); border: 1px solid var(--line);
+  }
+  .touch-controls button.fire { flex: 1.3; border-color: var(--cyan); color: var(--cyan); }
+  .touch-controls button.pressed { background: rgba(56,232,255,.2); box-shadow: 0 0 18px rgba(56,232,255,.35); }
+  @media (pointer: coarse), (max-width: 700px) {
+    .touch-controls { display: flex; }
+  }
 
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
@@ -223,6 +246,31 @@
   .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; border: 1px solid var(--line); }
   .badge.admin { color: var(--gold); border-color: #6b5623; }
   .badge.valid { color: var(--green); border-color: #1e6b45; }
+
+  /* ===== MODE HP: area game lebih lebar & penuh layar ===== */
+  @media (max-width: 700px) {
+    body { padding: 8px 6px 30px; }
+    .app { width: 100%; max-width: none; }
+    header { margin-bottom: 8px; }
+    .logo { font-size: 28px; }
+    h1 { font-size: clamp(22px, 7vw, 28px); letter-spacing: 2px; }
+    .tagline { font-size: 11px; }
+    .topbar { gap: 5px; margin-bottom: 8px; }
+    .pill { padding: 5px 9px; font-size: 10px; }
+    button.small { padding: 6px 9px; font-size: 11px; }
+    .panel { padding: 12px; border-radius: 14px; }
+    .panel h2 { font-size: 16px; }
+    .hud { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 7px; }
+    .hud .box { padding: 5px 6px; font-size: 10px; text-align: center; letter-spacing: .2px; }
+    .game-wrap { margin: 0 -6px; border-left: 0; border-right: 0; border-radius: 0; }
+    #scene { width: 100%; height: 58vh; height: 58svh; min-height: 300px; }
+    #minimap { width: 112px; height: 75px; right: 8px; top: 8px; }
+    .sector { left: 8px; top: 8px; font-size: 9px; padding: 4px 7px; }
+    .hint { font-size: 10px; line-height: 1.5; margin-top: 8px; }
+    .auth-shell { padding: 16px; }
+    .admin-table-wrap table { font-size: 11px; }
+    .game-actions { justify-content: center; }
+  }
 </style>
 </head>
 <body>
@@ -289,7 +337,7 @@
 
   <section class="panel hidden" id="lobbyPanel">
     <h2>Hangar · Persiapan Sesi</h2>
-    <p class="tagline">Pilih model pesawat & senjata, lalu luncurkan serangan. Semua loadout langsung bisa dipakai.</p>
+    <p class="tagline">Pilih model pesawat & senjata, lalu luncurkan serangan. Pesawat premium bisa dibeli di Shop.</p>
     <div class="loadout-title">Model Pesawat</div>
     <div class="loadout" id="shipBox"></div>
     <div class="loadout-title">Senjata</div>
@@ -310,16 +358,27 @@
       <div class="box">Seed <b id="hudSeed">-</b></div>
       <div class="box" id="hudStatus">LIVE</div>
     </div>
-    <div class="game-wrap">
+    <div class="game-wrap" id="gameWrap">
       <canvas id="scene" width="960" height="600"></canvas>
       <div class="sector" id="sectorLabel">SEKTOR 01</div>
       <canvas id="minimap" width="336" height="224"></canvas>
     </div>
-    <p class="hint">A / D · ← → = gerak &nbsp;|&nbsp; SPACE = tembak &nbsp;|&nbsp; P = pause &nbsp;|&nbsp; layar sentuh: tepi kiri/kanan + ketuk</p>
+    <div class="touch-controls" id="touchControls">
+      <button id="btnMoveLeft" aria-label="Gerak kiri">◀</button>
+      <button id="btnFire" class="fire" aria-label="Tembak">🔫 TEMBAK</button>
+      <button id="btnMoveRight" aria-label="Gerak kanan">▶</button>
+    </div>
+    <div class="game-actions">
+      <button class="secondary small" id="btnFullscreen">⛶ Layar Penuh</button>
+    </div>
+    <p class="hint">A / D · ← → = gerak &nbsp;|&nbsp; SPACE = tembak &nbsp;|&nbsp; P = pause &nbsp;|&nbsp; HP: tombol ◀ ▶ / geser jari di layar</p>
   </section>
 
   <section class="panel hidden" id="shopPanel">
-    <h2>Shop Item</h2>
+    <h2>Shop Pesawat & Item</h2>
+    <div class="loadout-title">Pesawat premium · tampilan & ukuran berbeda</div>
+    <div class="ship-shop" id="shipShop"></div>
+    <div class="loadout-title">Item pendukung</div>
     <div id="shopList"></div>
     <div class="msg" id="shopMsg"></div>
   </section>
@@ -493,6 +552,11 @@ async function restorePlayer() {
 async function refreshInventory() {
   if (!player) return;
   inventory = await api('/api/players/' + player.id + '/inventory');
+  const ownedCodes = new Set(inventory.filter(r => r.quantity > 0).map(r => r.item_code));
+  Object.entries(SHIP_MODELS).forEach(([id, m]) => {
+    if (m.shopCode && ownedCodes.has(m.shopCode)) unlockShip(id);
+  });
+  renderLoadout();
   renderEquip();
   renderShop();
 }
@@ -517,21 +581,52 @@ function renderEquip() {
 }
 async function renderShop() {
   try {
-    const items = await api('/api/items');
+    const allItems = await api('/api/items');
+    const shipItems = new Map(allItems.filter(it => it.code.startsWith('ship_')).map(it => [it.code, it]));
+    const items = allItems.filter(it => !it.code.startsWith('ship_'));
+
+    const ships = Object.entries(SHIP_MODELS).filter(([, m]) => m.shopCode);
+    $('shipShop').innerHTML = ships.map(([id, m]) => {
+      const owned = ownedShips.has(id);
+      const it = shipItems.get(m.shopCode);
+      const price = it ? it.price : m.price;
+      return `
+        <div class="item">
+          <div class="ship-badge" style="color:${m.accent}">${m.icon}</div>
+          <div><b>${m.name} · ${m.desc}</b><br><small>${owned ? 'Sudah kamu miliki' : price + ' koin'}</small></div>
+          ${owned
+            ? `<button class="small secondary" data-select-ship="${id}">${id === selectedShip ? 'Dipakai' : 'Pakai'}</button>`
+            : `<button class="small" data-buy="${m.shopCode}" data-ship="${id}">Beli</button>`}
+        </div>`;
+    }).join('');
+
+    $('shipShop').querySelectorAll('[data-select-ship]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectShip(btn.dataset.selectShip);
+        setMsg($('shopMsg'), `${SHIP_MODELS[btn.dataset.selectShip].name} siap dipakai!`);
+      });
+    });
+
     $('shopList').innerHTML = items.map(it => `
       <div class="item">
         <div><b>${it.name}</b><br><span>${it.description}</span><small>${it.price} koin</small></div>
         <button class="small" data-buy="${it.code}">Beli</button>
       </div>`).join('');
-    $('shopList').querySelectorAll('[data-buy]').forEach(btn => {
+
+    document.querySelectorAll('#shipShop [data-buy], #shopList [data-buy]').forEach(btn => {
       btn.addEventListener('click', async () => {
         if (!player) return setMsg($('shopMsg'), 'Login dulu ya.', true);
         try {
           const res = await api(`/api/players/${player.id}/items/${btn.dataset.buy}/buy`, { method: 'POST' });
+          const shipId = btn.dataset.ship;
+          if (shipId) {
+            unlockShip(shipId);
+            selectShip(shipId);
+          }
           player = await api('/api/players/' + player.id);
           $('playerInfo').textContent = `${player.display_name} · ${player.coins} koin`;
           await refreshInventory();
-          setMsg($('shopMsg'), res.message);
+          setMsg($('shopMsg'), shipId ? `${SHIP_MODELS[shipId].name} berhasil dibeli dan dipakai!` : res.message);
         } catch (e) { setMsg($('shopMsg'), e.message, true); }
       });
     });
@@ -654,17 +749,25 @@ const W = 960, H = 600;
 let running = false, paused = false, over = false;
 let score = 0, wave = 1, lives = 3, combo = 0, maxCombo = 0, kills = 0;
 let bullets = [], enemies = [], drops = [], particles = [];
-let keys = { left: false, right: false, fire: false };
-let ship = { x: W / 2, y: H - 60, w: 38, h: 40 };
+let keys = { left: false, right: false, fire: false, pointerX: null };
+let ship = { x: W / 2, y: H - 60, w: 38, h: 40, vx: 0 };
 let cooldown = 0, lastTime = 0, startedAt = 0, shake = 0;
 
 /* ---- LOADOUT: MODEL PESAWAT & SENJATA ---- */
-const SHIP_KEY = 'sf_ship', WEAPON_KEY = 'sf_weapon';
+const SHIP_KEY = 'sf_ship', WEAPON_KEY = 'sf_weapon', SHIP_OWNED_KEY = 'sf_ships';
+const FREE_SHIPS = ['vanguard', 'raptor', 'phantom'];
 const SHIP_MODELS = {
-  vanguard: { name: 'VANGUARD', icon: '🚀', accent: '#38e8ff', color: 0x38e8ff, desc: 'Fighter ringan · manuver cepat' },
-  raptor:   { name: 'RAPTOR',   icon: '✈️', accent: '#ff9f43', color: 0xff9f43, desc: 'Interceptor · sayap tajam & agresif' },
-  phantom:  { name: 'PHANTOM',  icon: '🛸', accent: '#c084fc', color: 0xc084fc, desc: 'Stealth chooser · glow ungu' }
+  vanguard: { name: 'VANGUARD', icon: '🚀', accent: '#38e8ff', color: 0x38e8ff, desc: 'Fighter seimbang · ukuran sedang', speed: 330, scale: 1, hitbox: 1 },
+  raptor:   { name: 'RAPTOR',   icon: '✈️', accent: '#ff9f43', color: 0xff9f43, desc: 'Sayap tajam · lincah & agresif', speed: 365, scale: .95, hitbox: .95 },
+  phantom:  { name: 'PHANTOM',  icon: '🛸', accent: '#c084fc', color: 0xc084fc, desc: 'Stealth lebar · glow ungu', speed: 345, scale: 1.05, hitbox: 1.05 },
+  spectre:  { name: 'SPECTRE',  icon: '🛩️', accent: '#7dffd4', color: 0x7dffd4, desc: 'Pesawat mini · paling cepat & mungil', speed: 420, scale: .68, hitbox: .72, price: 600, shopCode: 'ship_spectre' },
+  nova:     { name: 'NOVA',     icon: '🌟', accent: '#ffd166', color: 0xffd166, desc: 'Sayap swept · inti energi besar', speed: 370, scale: 1.2, hitbox: 1.1, price: 1000, shopCode: 'ship_nova' },
+  titan:    { name: 'TITAN',    icon: '🛳️', accent: '#4ade80', color: 0x4ade80, desc: 'Kapaltempur raksasa · 4 mesin', speed: 285, scale: 1.55, hitbox: 1.3, price: 1600, shopCode: 'ship_titan' }
 };
+let ownedShips = new Set([
+  ...FREE_SHIPS,
+  ...JSON.parse(localStorage.getItem(SHIP_OWNED_KEY) || '[]')
+]);
 const WEAPONS = {
   pulse:   { name: 'PULSE CANNON', icon: '🔵', color: '#38e8ff', hex: 0x38e8ff, desc: 'Laser cepat seimbang', cd: .20, speed: 620, dmg: 1, shots: 1, spread: 0, pierce: 0, size: .32, len: 1 },
   twin:    { name: 'TWIN BLASTER', icon: '⚡', color: '#ffd166', hex: 0xffd166, desc: '2 tembakan sejajar', cd: .18, speed: 680, dmg: 1, shots: 2, spread: 0, pierce: 0, size: .28, len: 1 },
@@ -672,22 +775,47 @@ const WEAPONS = {
   scatter: { name: 'NOVA SCATTER', icon: '🌟', color: '#ff9f43', hex: 0xff9f43, desc: '5 peluru menyebar', cd: .42, speed: 520, dmg: 1, shots: 5, spread: .42, pierce: 0, size: .26, len: .9 },
   plasma:  { name: 'PLASMA CORE',  icon: '🟢', color: '#4ade80', hex: 0x4ade80, desc: 'Orb besar, damage 2', cd: .40, speed: 430, dmg: 2, shots: 1, spread: 0, pierce: 0, size: .78, len: 1.4 }
 };
-let selectedShip = SHIP_MODELS[localStorage.getItem(SHIP_KEY)] ? localStorage.getItem(SHIP_KEY) : 'vanguard';
+let selectedShip = SHIP_MODELS[localStorage.getItem(SHIP_KEY)] && ownedShips.has(localStorage.getItem(SHIP_KEY))
+  ? localStorage.getItem(SHIP_KEY) : 'vanguard';
 let selectedWeapon = WEAPONS[localStorage.getItem(WEAPON_KEY)] ? localStorage.getItem(WEAPON_KEY) : 'pulse';
 
+function applyShipStats() {
+  const m = SHIP_MODELS[selectedShip];
+  ship.w = Math.round(38 * m.hitbox);
+  ship.h = Math.round(40 * m.hitbox);
+  if (typeof playerShip !== 'undefined') {
+    playerShip.scale.setScalar(m.scale);
+  }
+}
+function selectShip(id) {
+  if (!SHIP_MODELS[id] || !ownedShips.has(id)) return;
+  selectedShip = id;
+  localStorage.setItem(SHIP_KEY, id);
+  applyShipStats();
+  setShipModel(id);
+  renderLoadout();
+}
+function unlockShip(id) {
+  ownedShips.add(id);
+  localStorage.setItem(SHIP_OWNED_KEY, JSON.stringify([...ownedShips]));
+}
 function renderLoadout() {
   const shipBox = $('shipBox'), weaponBox = $('weaponBox');
   shipBox.innerHTML = '';
   Object.entries(SHIP_MODELS).forEach(([id, m]) => {
+    const owned = ownedShips.has(id);
     const b = document.createElement('button');
-    b.className = 'loadout-card' + (id === selectedShip ? ' active' : '');
+    b.className = 'loadout-card' + (id === selectedShip ? ' active' : '') + (owned ? '' : ' locked');
     b.style.setProperty('--accent', m.accent);
-    b.innerHTML = `<b>${m.icon} ${m.name}</b><span>${m.desc}</span>`;
+    b.innerHTML = `<b>${owned ? m.icon : '🔒'} ${m.name}</b><span>${owned ? m.desc : `Beli di Shop · ${m.price} koin`}</span>`;
     b.addEventListener('click', () => {
-      selectedShip = id;
-      localStorage.setItem(SHIP_KEY, id);
-      renderLoadout();
-      setShipModel(id);
+      if (!owned) {
+        showPanel('shopPanel');
+        renderShop();
+        setMsg($('shopMsg'), `Beli ${m.name} dulu di Shop ya, Pilot.`, true);
+        return;
+      }
+      selectShip(id);
     });
     shipBox.appendChild(b);
   });
@@ -748,6 +876,9 @@ function resetGame() {
   lives = 3 + (session.shield_active ? 1 : 0);
   bullets = []; enemies = []; drops = []; particles = [];
   ship.x = W / 2;
+  ship.vx = 0;
+  keys.left = keys.right = keys.fire = false;
+  keys.pointerX = null;
   cooldown = 0; paused = false; over = false; shake = 0;
   startedAt = performance.now();
   clearDynamic();
@@ -823,10 +954,19 @@ function hitPlayer() {
   if (lives <= 0) finishRun();
 }
 function update(dt) {
-  const speed = 330;
-  if (keys.left) ship.x -= speed * dt;
-  if (keys.right) ship.x += speed * dt;
-  ship.x = Math.max(24, Math.min(W - 24, ship.x));
+  const stats = SHIP_MODELS[selectedShip] || SHIP_MODELS.vanguard;
+  const speed = stats.speed;
+  const prevX = ship.x;
+  if (keys.pointerX !== null) {
+    // Geser jari: pesawat mengikuti posisi jari dengan gerak halus.
+    const diff = keys.pointerX - ship.x;
+    ship.x += Math.max(-speed * 1.7 * dt, Math.min(speed * 1.7 * dt, diff));
+  } else {
+    if (keys.left) ship.x -= speed * dt;
+    if (keys.right) ship.x += speed * dt;
+  }
+  ship.x = Math.max(ship.w / 2 + 6, Math.min(W - ship.w / 2 - 6, ship.x));
+  ship.vx = dt > 0 ? (ship.x - prevX) / dt : 0;
 
   cooldown -= dt;
   if (keys.fire && cooldown <= 0) fireWeapon();
@@ -897,6 +1037,25 @@ scene.fog = new THREE.FogExp2(0x02040f, 0.010);
 const camera = new THREE.PerspectiveCamera(55, W / H, 0.1, 500);
 camera.position.set(0, 22, 30);
 camera.lookAt(0, 0, -2);
+
+/* Canvas mengikuti ukuran layar (HP / fullscreen) tanpa meregangkan gambar. */
+let worldSpan = 34;
+let lastCanvasSize = '';
+function resizeScene() {
+  const w = Math.max(1, Math.round(sceneCanvas.clientWidth || W));
+  const h = Math.max(1, Math.round(sceneCanvas.clientHeight || H));
+  const key = w + 'x' + h;
+  if (key === lastCanvasSize) return;
+  lastCanvasSize = key;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  // Layar sempit: perkecil rentang dunia supaya pesawat tetap terlihat.
+  worldSpan = 34 * Math.min(1, Math.max(.42, camera.aspect / (W / H)));
+}
+resizeScene();
+window.addEventListener('resize', resizeScene);
+if (window.ResizeObserver) new ResizeObserver(resizeScene).observe(sceneCanvas);
 
 const dynamic = new THREE.Group();
 scene.add(dynamic);
@@ -1108,6 +1267,14 @@ function buildBeetle(g, p, style, dir, s) {
     color: p.eye, transparent: true, opacity: .95,
     blending: THREE.AdditiveBlending
   });
+  const wings = [], legs = [], antennae = [], jaws = [];
+  const track = (mesh, list) => {
+    mesh.userData.baseX = mesh.rotation.x;
+    mesh.userData.baseY = mesh.rotation.y;
+    mesh.userData.baseZ = mesh.rotation.z;
+    list.push(mesh);
+    return mesh;
+  };
 
   /* Perut dan sayap keras (elytra) */
   const abdomen = new THREE.Mesh(new THREE.SphereGeometry(s, 16, 12), shell);
@@ -1119,7 +1286,7 @@ function buildBeetle(g, p, style, dir, s) {
     wing.scale.set(.62, .42, 1.4);
     wing.position.set(side * .52 * s, .18 * s, -.2 * dir * s);
     wing.rotation.y = side * (style === 'stag' ? .24 : .12);
-    g.add(wing);
+    g.add(track(wing, wings));
   });
   const seam = new THREE.Mesh(new THREE.BoxGeometry(.05 * s, .06 * s, 2.6 * s), eyeMat);
   seam.position.set(0, .55 * s, -.2 * dir * s);
@@ -1144,22 +1311,22 @@ function buildBeetle(g, p, style, dir, s) {
       jaw.rotation.x = dir * Math.PI / 2;
       jaw.rotation.z = side * -.18;
       jaw.position.set(side * .42 * s, -.05 * s, 2.05 * dir * s);
-      g.add(jaw);
+      g.add(track(jaw, jaws));
       const tooth = new THREE.Mesh(new THREE.ConeGeometry(.09 * s, .6 * s, 6), plate);
       tooth.rotation.x = dir * Math.PI / 2;
       tooth.position.set(side * .22 * s, .12 * s, 2.35 * dir * s);
-      g.add(tooth);
+      g.add(track(tooth, jaws));
     });
   } else if (style === 'rhino') {
     const horn = new THREE.Mesh(new THREE.ConeGeometry(.26 * s, 2 * s, 8), plate);
     horn.rotation.x = dir * (Math.PI / 2 - .18);
     horn.position.set(0, .35 * s, 1.95 * dir * s);
-    g.add(horn);
+    g.add(track(horn, jaws));
     [-1, 1].forEach(side => {
       const jaw = new THREE.Mesh(new THREE.ConeGeometry(.13 * s, .9 * s, 6), plate);
       jaw.rotation.x = dir * Math.PI / 2;
       jaw.position.set(side * .38 * s, -.18 * s, 1.9 * dir * s);
-      g.add(jaw);
+      g.add(track(jaw, jaws));
     });
   } else {
     [-1, 1].forEach(side => {
@@ -1167,7 +1334,7 @@ function buildBeetle(g, p, style, dir, s) {
       jaw.rotation.x = dir * Math.PI / 2;
       jaw.rotation.z = side * .12;
       jaw.position.set(side * .32 * s, -.1 * s, 1.85 * dir * s);
-      g.add(jaw);
+      g.add(track(jaw, jaws));
     });
   }
 
@@ -1178,7 +1345,7 @@ function buildBeetle(g, p, style, dir, s) {
       leg.position.set(side * (.95 + i * .16) * s, -.2 * s, (.55 - i * .75) * dir * s);
       leg.rotation.z = side * (-.32 - i * .1);
       leg.rotation.y = side * (.6 - i * .2);
-      g.add(leg);
+      g.add(track(leg, legs));
     });
   }
 
@@ -1188,9 +1355,9 @@ function buildBeetle(g, p, style, dir, s) {
     a.position.set(side * .4 * s, .62 * s, 1.55 * dir * s);
     a.rotation.x = dir * .6;
     a.rotation.z = side * .3;
-    g.add(a);
+    g.add(track(a, antennae));
   });
-  return { eyeMat };
+  return { eyeMat, wings, legs, antennae, jaws, seam };
 }
 /* Pesawat tetap spaceship futuristik; hanya musuhnya yang berupa kumbang alien */
 function buildShipModel(id) {
@@ -1209,6 +1376,15 @@ function buildShipModel(id) {
     emissive: 0x4fd8ff, emissiveIntensity: .55
   });
   let engine;
+  const wings = [], fins = [];
+  let glass = null;
+  const trackPart = (mesh, list) => {
+    mesh.userData.baseX = mesh.rotation.x;
+    mesh.userData.baseY = mesh.rotation.y;
+    mesh.userData.baseZ = mesh.rotation.z;
+    list.push(mesh);
+    return mesh;
+  };
 
   if (id === 'raptor') {
     const body = new THREE.Mesh(new THREE.ConeGeometry(.72, 4.2, 3), hull);
@@ -1219,13 +1395,13 @@ function buildShipModel(id) {
       wing.position.set(side * 1.5, -.05, .7);
       wing.rotation.z = side * .22;
       wing.rotation.y = side * .18;
-      g.add(wing);
+      g.add(trackPart(wing, wings));
       const tip = new THREE.Mesh(new THREE.ConeGeometry(.22, 1.4, 4), trim);
       tip.rotation.x = -Math.PI / 2;
       tip.position.set(side * 2.6, 0, .55);
-      g.add(tip);
+      g.add(trackPart(tip, wings));
     });
-    const glass = new THREE.Mesh(new THREE.SphereGeometry(.42, 12, 8), canopy);
+    glass = new THREE.Mesh(new THREE.SphereGeometry(.42, 12, 8), canopy);
     glass.scale.set(.8, .55, 1.5);
     glass.position.set(0, .35, -.35);
     g.add(glass);
@@ -1237,31 +1413,111 @@ function buildShipModel(id) {
     const wing = new THREE.Mesh(new THREE.BoxGeometry(5.4, .14, 1.9), trim);
     wing.position.set(0, -.1, .55);
     wing.rotation.x = .12;
-    g.add(wing);
+    g.add(trackPart(wing, wings));
     [-1, 1].forEach(side => {
       const fin = new THREE.Mesh(new THREE.ConeGeometry(.45, 1.8, 3), hull);
       fin.position.set(side * 2.4, .25, .35);
       fin.rotation.z = side * -.4;
-      g.add(fin);
+      g.add(trackPart(fin, fins));
     });
-    const glass = new THREE.Mesh(new THREE.SphereGeometry(.55, 12, 8), canopy);
+    glass = new THREE.Mesh(new THREE.SphereGeometry(.55, 12, 8), canopy);
     glass.scale.set(1, .45, 1.3);
     glass.position.set(0, .4, -.2);
     g.add(glass);
     engine = addEngines(g, [-1.7, 1.7], .6, info.color);
+  } else if (id === 'spectre') {
+    /* Mini stealth: badan runcing, sayap mikro, satu mesin biru. */
+    const body = new THREE.Mesh(new THREE.ConeGeometry(.5, 2.8, 4), hull);
+    body.rotation.x = -Math.PI / 2;
+    g.add(body);
+    [-1, 1].forEach(side => {
+      const wing = new THREE.Mesh(new THREE.ConeGeometry(.22, 1.7, 3), trim);
+      wing.rotation.x = -Math.PI / 2;
+      wing.rotation.z = side * .5;
+      wing.position.set(side * .85, 0, .35);
+      g.add(trackPart(wing, wings));
+    });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.62, .05, 6, 24), trim);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.z = .25;
+    g.add(ring);
+    glass = new THREE.Mesh(new THREE.SphereGeometry(.3, 10, 8), canopy);
+    glass.scale.set(.8, .5, 1.5);
+    glass.position.set(0, .26, -.4);
+    g.add(glass);
+    engine = addEngines(g, [0], .42, info.color);
+  } else if (id === 'nova') {
+    /* Interceptor elegan: sayap swept, cincin energi, inti bercahaya. */
+    const body = new THREE.Mesh(new THREE.ConeGeometry(.78, 3.8, 5), hull);
+    body.rotation.x = -Math.PI / 2;
+    g.add(body);
+    [-1, 1].forEach(side => {
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(2.7, .14, 1.3), trim);
+      wing.position.set(side * 1.6, -.08, .75);
+      wing.rotation.y = side * .42;
+      wing.rotation.z = side * -.18;
+      g.add(trackPart(wing, wings));
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(.3, 1.5, 3), hull);
+      fin.position.set(side * 2.5, .22, .6);
+      fin.rotation.z = side * -.5;
+      g.add(trackPart(fin, fins));
+    });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(.95, .09, 8, 32), trim);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.z = .15;
+    g.add(ring);
+    const core = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(.42, 0),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .85, blending: THREE.AdditiveBlending })
+    );
+    core.position.set(0, .12, .35);
+    g.add(core);
+    glass = new THREE.Mesh(new THREE.SphereGeometry(.48, 12, 8), canopy);
+    glass.scale.set(.85, .5, 1.6);
+    glass.position.set(0, .38, -.5);
+    g.add(glass);
+    engine = addEngines(g, [-1.25, 1.25], .55, info.color);
+  } else if (id === 'titan') {
+    /* Kapaltempur: lambung tebal, sayap masif, empat mesin, pod samping. */
+    const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, .55, 4.2), hull);
+    g.add(body);
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(1.05, 2.2, 4), trim);
+    nose.rotation.x = -Math.PI / 2;
+    nose.position.z = -2.7;
+    g.add(nose);
+    [-1, 1].forEach(side => {
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(3.2, .3, 2.2), trim);
+      wing.position.set(side * 2.5, -.12, .9);
+      wing.rotation.y = side * .15;
+      g.add(trackPart(wing, wings));
+      const pod = new THREE.Mesh(new THREE.CylinderGeometry(.38, .5, 2.6, 8), hull);
+      pod.rotation.x = Math.PI / 2;
+      pod.position.set(side * 3.6, -.05, .5);
+      g.add(trackPart(pod, fins));
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(.5, 1.8, 4), trim);
+      fin.position.set(side * 3.5, .35, 1.5);
+      fin.rotation.z = side * -.35;
+      g.add(trackPart(fin, fins));
+    });
+    glass = new THREE.Mesh(new THREE.SphereGeometry(.62, 12, 8), canopy);
+    glass.scale.set(1, .45, 1.7);
+    glass.position.set(0, .42, -.7);
+    g.add(glass);
+    engine = addEngines(g, [-1.5, -.5, .5, 1.5], .6, info.color);
   } else {
     const body = new THREE.Mesh(new THREE.ConeGeometry(.95, 3.4, 4), hull);
     body.rotation.x = -Math.PI / 2;
     g.add(body);
     const wing = new THREE.Mesh(new THREE.BoxGeometry(3.6, .18, 1.15), trim);
     wing.position.z = .85;
-    g.add(wing);
-    const glass = new THREE.Mesh(new THREE.SphereGeometry(.45, 12, 8), canopy);
+    g.add(trackPart(wing, wings));
+    glass = new THREE.Mesh(new THREE.SphereGeometry(.45, 12, 8), canopy);
     glass.scale.set(.9, .55, 1.4);
     glass.position.set(0, .4, -.25);
     g.add(glass);
     engine = addEngines(g, [-1.2, 1.2], .55, info.color);
   }
+  g.userData.parts = { wings, fins, glass };
   return { group: g, engine };
 }
 let engineGlow = null;
@@ -1272,8 +1528,10 @@ function setShipModel(id) {
   const built = buildShipModel(id);
   playerShip.add(built.group);
   engineGlow = built.engine;
+  playerShip.userData.parts = built.group.userData.parts;
 }
 setShipModel(selectedShip);
+applyShipStats();
 
 const BEETLE_ENEMIES = {
   scout:  { shell: 0x1d123f, plate: 0xa66bff, eye: 0xff7bff, style: 'scarab', s: .85, bar: 2.2 },
@@ -1284,8 +1542,9 @@ function makeEnemyMesh(type) {
   const g = new THREE.Group();
   const cfg = BEETLE_ENEMIES[type] || BEETLE_ENEMIES.scout;
   const parts = buildBeetle(g, cfg, cfg.style, 1, cfg.s);
+  let ring = null;
   if (type === 'boss') {
-    const ring = new THREE.Mesh(
+    ring = new THREE.Mesh(
       new THREE.TorusGeometry(3.2, .16, 6, 40),
       new THREE.MeshBasicMaterial({ color: 0xffd166 })
     );
@@ -1299,6 +1558,12 @@ function makeEnemyMesh(type) {
   bar.position.y = cfg.bar;
   g.userData.bar = bar;
   g.userData.eyeMat = parts.eyeMat;
+  g.userData.wings = parts.wings;
+  g.userData.legs = parts.legs;
+  g.userData.antennae = parts.antennae;
+  g.userData.jaws = parts.jaws;
+  g.userData.seam = parts.seam;
+  g.userData.ring = ring;
   g.add(bar);
   return g;
 }
@@ -1322,26 +1587,70 @@ const pPoints = new THREE.Points(pGeo, new THREE.PointsMaterial({
 }));
 scene.add(pPoints);
 
-const toWorldX = x => (x / W - .5) * 34;
+const toWorldX = x => (x / W - .5) * worldSpan;
 const toWorldZ = y => -30 + (y / H) * 48;
 
 function syncMeshes(ts) {
-  playerShip.position.set(toWorldX(ship.x), Math.sin(ts * .004) * .14, toWorldZ(ship.y));
-  playerShip.rotation.z = (keys.left ? .18 : 0) - (keys.right ? .18 : 0);
-  engineGlow.scale.setScalar(1 + Math.sin(ts * .012) * .16);
-  engineGlow.scale.z *= .55;
+  /* Pesawat: bobbing, bank halus, sayap & kanopi ikut bernapas */
+  const targetBank = Math.max(-.34, Math.min(.34, -ship.vx * .0011));
+  playerShip.rotation.z += (targetBank - playerShip.rotation.z) * .16;
+  playerShip.position.set(toWorldX(ship.x), Math.sin(ts * .004) * .16, toWorldZ(ship.y));
+  playerShip.rotation.y = Math.sin(ts * .002) * .07;
+  playerShip.rotation.x = Math.sin(ts * .003) * .05;
+  if (engineGlow) {
+    const pulse = 1 + Math.sin(ts * .012) * .18;
+    engineGlow.scale.set(pulse, pulse, pulse * .55);
+  }
+  const shipParts = playerShip.userData.parts;
+  if (shipParts) {
+    shipParts.wings.forEach((w, i) => {
+      w.rotation.z = w.userData.baseZ + Math.sin(ts * .007 + i) * .05 + playerShip.rotation.z * .35;
+      w.rotation.y = w.userData.baseY + Math.sin(ts * .005 + i * .7) * .04;
+    });
+    shipParts.fins.forEach((f, i) => {
+      f.rotation.z = f.userData.baseZ + Math.sin(ts * .006 + i) * .08;
+    });
+    if (shipParts.glass) {
+      shipParts.glass.material.emissiveIntensity = .5 + Math.sin(ts * .005) * .25;
+    }
+  }
 
   enemies.forEach(e => {
     if (!e.mesh) { e.mesh = makeEnemyMesh(e.type); dynamic.add(e.mesh); }
-    e.mesh.position.set(toWorldX(e.x), 0, toWorldZ(e.y));
-    e.mesh.rotation.y = Math.sin(ts * .0012 + e.phase) * .3;
-    e.mesh.rotation.x = Math.sin(ts * .0018 + e.phase) * .14;
-    if (e.mesh.userData.eyeMat) e.mesh.userData.eyeMat.opacity = .65 + Math.abs(Math.sin(ts * .004 + e.phase)) * .35;
-    if (e.mesh.userData.bar) e.mesh.userData.bar.quaternion.copy(camera.quaternion);
+    const m = e.mesh, ph = e.phase || 0;
+    m.position.set(toWorldX(e.x), .25 + Math.sin(ts * .003 + ph) * .35, toWorldZ(e.y));
+    m.rotation.y = Math.sin(ts * .0012 + ph) * .45;
+    m.rotation.x = Math.sin(ts * .0018 + ph) * .18;
+    m.rotation.z = Math.sin(ts * .0015 + ph) * .12;
+    if (m.userData.wings) m.userData.wings.forEach((w, i) => {
+      w.rotation.y = w.userData.baseY + Math.sin(ts * .012 + ph + i * 1.4) * .3;
+    });
+    if (m.userData.legs) m.userData.legs.forEach((l, i) => {
+      l.rotation.z = l.userData.baseZ + Math.sin(ts * .011 + ph + i * .9) * .18;
+    });
+    if (m.userData.antennae) m.userData.antennae.forEach((a, i) => {
+      a.rotation.z = a.userData.baseZ + Math.sin(ts * .009 + ph + i * 1.3) * .25;
+    });
+    if (m.userData.jaws) m.userData.jaws.forEach((j, i) => {
+      j.rotation.x = j.userData.baseX + Math.sin(ts * .01 + ph + i) * .14;
+    });
+    if (m.userData.eyeMat) {
+      m.userData.eyeMat.opacity = .65 + Math.abs(Math.sin(ts * .004 + ph)) * .35;
+    }
+    if (m.userData.seam) m.userData.seam.scale.y = 1 + Math.sin(ts * .008 + ph) * .4;
+    if (m.userData.ring) {
+      m.userData.ring.rotation.z += .012;
+      const rs = 1 + Math.sin(ts * .004 + ph) * .07;
+      m.userData.ring.scale.set(rs, rs, rs);
+    }
+    if (m.userData.bar) m.userData.bar.quaternion.copy(camera.quaternion);
   });
-  bullets.forEach(b => b.mesh.position.set(toWorldX(b.x), .3, toWorldZ(b.y)));
+  bullets.forEach(b => {
+    b.mesh.position.set(toWorldX(b.x), .3, toWorldZ(b.y));
+    b.mesh.scale.setScalar(1 + Math.sin(ts * .02 + b.x) * .12);
+  });
   drops.forEach(d => {
-    d.mesh.position.set(toWorldX(d.x), .4, toWorldZ(d.y));
+    d.mesh.position.set(toWorldX(d.x), .4 + Math.sin(ts * .005 + d.x) * .2, toWorldZ(d.y));
     d.mesh.rotation.y += .05;
     d.mesh.rotation.x += .03;
   });
@@ -1366,7 +1675,11 @@ function syncMeshes(ts) {
   }
   starGeo.attributes.position.needsUpdate = true;
   starField.material.opacity = .78 + Math.sin(ts * .001) * .14;
-  rocks.children.forEach(r => { r.rotation.y += r.userData.spin * .016; });
+  rocks.children.forEach((r, i) => {
+    r.rotation.y += r.userData.spin * .016;
+    r.rotation.x += r.userData.spin * .01;
+    r.position.y += Math.sin(ts * .0008 + i) * .004;
+  });
   for (let i = 0; i < dustCount; i++) {
     dustPos[i * 3 + 1] += .035;
     if (dustPos[i * 3 + 1] > 26) dustPos[i * 3 + 1] = -10;
@@ -1378,9 +1691,10 @@ function syncMeshes(ts) {
   moon.rotation.y -= .0005;
   farPlanet.rotation.y += .0004;
 
-  camera.position.x = Math.sin(ts * .0003) * 1.3 + (Math.random() - .5) * shake * .14;
+  camera.position.x = Math.sin(ts * .0003) * 1.3 + toWorldX(ship.x) * .06
+    + (Math.random() - .5) * shake * .14;
   camera.position.y = 22 + (Math.random() - .5) * shake * .1;
-  camera.lookAt(0, 0, -2);
+  camera.lookAt(toWorldX(ship.x) * .03, 0, -2);
   renderer.render(scene, camera);
 }
 
@@ -1482,8 +1796,8 @@ $('btnMenu').addEventListener('click', () => {
 /* ===================== INPUT ===================== */
 document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
-  if (k === 'a' || e.key === 'ArrowLeft') keys.left = true;
-  if (k === 'd' || e.key === 'ArrowRight') keys.right = true;
+  if (k === 'a' || e.key === 'ArrowLeft') { keys.left = true; keys.pointerX = null; }
+  if (k === 'd' || e.key === 'ArrowRight') { keys.right = true; keys.pointerX = null; }
   if (e.code === 'Space') { keys.fire = true; e.preventDefault(); }
   if (k === 'p' && running && !over) {
     paused = !paused;
@@ -1496,18 +1810,62 @@ document.addEventListener('keyup', e => {
   if (k === 'd' || e.key === 'ArrowRight') keys.right = false;
   if (e.code === 'Space') keys.fire = false;
 });
+function pointerToShipX(e) {
+  const r = sceneCanvas.getBoundingClientRect();
+  return Math.max(0, Math.min(W, ((e.clientX - r.left) / r.width) * W));
+}
 sceneCanvas.addEventListener('pointerdown', e => {
   if (!running || paused || over) return;
-  const r = sceneCanvas.getBoundingClientRect();
-  const rel = (e.clientX - r.left) / r.width;
-  if (rel < .4) keys.left = true;
-  else if (rel > .6) keys.right = true;
+  keys.left = keys.right = false;
+  keys.pointerX = pointerToShipX(e);
   keys.fire = true;
   sceneCanvas.setPointerCapture(e.pointerId);
 });
-function releasePointer() { keys.left = keys.right = keys.fire = false; }
+sceneCanvas.addEventListener('pointermove', e => {
+  if (keys.pointerX === null || !running || paused || over) return;
+  keys.pointerX = pointerToShipX(e);
+});
+function releasePointer() {
+  keys.left = keys.right = keys.fire = false;
+  keys.pointerX = null;
+}
 sceneCanvas.addEventListener('pointerup', releasePointer);
 sceneCanvas.addEventListener('pointercancel', releasePointer);
+sceneCanvas.addEventListener('lostpointercapture', releasePointer);
+
+/* Tombol gerak eksplisit untuk HP: tahan untuk bergerak, lepas untuk berhenti. */
+function bindHold(id, key) {
+  const btn = $(id);
+  const down = e => {
+    if (!running || paused || over) return;
+    e.preventDefault();
+    keys.pointerX = null;
+    keys[key] = true;
+    btn.classList.add('pressed');
+    btn.setPointerCapture?.(e.pointerId);
+  };
+  const up = e => {
+    e.preventDefault();
+    keys[key] = false;
+    btn.classList.remove('pressed');
+  };
+  btn.addEventListener('pointerdown', down);
+  btn.addEventListener('pointerup', up);
+  btn.addEventListener('pointercancel', up);
+  btn.addEventListener('lostpointercapture', up);
+}
+bindHold('btnMoveLeft', 'left');
+bindHold('btnMoveRight', 'right');
+bindHold('btnFire', 'fire');
+
+$('btnFullscreen').addEventListener('click', async () => {
+  const wrap = $('gameWrap');
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else if (wrap.requestFullscreen) await wrap.requestFullscreen();
+  } catch (_) { /* browser mungkin melarang fullscreen */ }
+});
+document.addEventListener('fullscreenchange', resizeScene);
 
 /* ===================== INIT ===================== */
 (async function init() {

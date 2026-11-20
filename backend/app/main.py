@@ -48,6 +48,25 @@ SEED_ITEMS = [
         "description": "Kecepatan tembak naik 40% selama satu run.",
         "price": 250,
     },
+    # Pesawat premium: dibeli dari Shop, kepemilikan tercatat di inventory.
+    {
+        "code": "ship_spectre",
+        "name": "SPECTRE (Pesawat)",
+        "description": "Mata-mata kecil & sangat lincah, ukuran minimalis.",
+        "price": 600,
+    },
+    {
+        "code": "ship_nova",
+        "name": "NOVA (Pesawat)",
+        "description": "Interceptor sayap lebar dengan inti bercahaya.",
+        "price": 1000,
+    },
+    {
+        "code": "ship_titan",
+        "name": "TITAN (Pesawat)",
+        "description": "Kapaltempur besar, lambat tapi gagah.",
+        "price": 1600,
+    },
 ]
 
 # Akun admin tunggal. Bisa diganti lewat environment variable tanpa edit kode.

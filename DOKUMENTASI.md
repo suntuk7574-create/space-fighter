@@ -7,7 +7,7 @@
 **Tema:** Pemain mengendalikan pesawat di orbit dan menahan gelombang musuh agar Bumi tetap aman.
 
 **Mekanisme singkat:**
-- Pemawat menggerakkan pesawat (A/D atau ←/→) dan menembak (SPACE).
+- Pemawat menggerakkan pesawat (A/D atau ←/→, tombol ◀ ▶ di HP, atau geser jari di layar) dan menembak (SPACE / tombol 🔫). Tiap model pesawat punya kecepatan gerak dan ukuran berbeda.
 - Musuh turun dari atas dalam **wave**. Setiap wave jumlah, kecepatan, dan HP musuh meningkat.
 - Menembak musuh memberi poin; **combo** bertambah jika menembak terus-menerus dan reset saat terkena musuh / musuh kabur.
 - Ada 3 nyawa. Item **Pelindung** menambah 1 nyawa, **Rapid Fire** mempercepat tembakan.
@@ -18,7 +18,7 @@
 
 **Fitur pembeda:** **Seed harian**. Backend membuat seed dari tanggal memakai SHA-256; frontend memakai LCG dengan seed yang sama sehingga pola spawn musuh reproducible untuk semua pemain pada hari itu.
 
-**Tampilan:** game dirender dalam **3D menggunakan Three.js**. Medan perangnya adalah **arena orbit luar angkasa** (cincin pertahanan melingkar, nebula berlapis, planet bercincin + satelit, sabuk asteroid dan kristal bercahaya, bintang berkedip, serta debu kosmik), bukan bidang grid kotak. **Musuh berupa kumbang alien** yang dibuat prosedural: cangkang, sayap keras (elytra), enam kaki, antena, mata majemuk bercahaya, taring dan tanduk. **Pesawat tetap spaceship futuristik** dengan 3 model (Vanguard, Raptor, Phantom) dan 5 pilihan senjata (Pulse Cannon, Twin Blaster, Ion Lance yang menembus musuh, Nova Scatter 5 peluru, dan Plasma Core damage 2). Pilihan loadout disimpan di `localStorage`. Radar/sektor mini-map ada di sudut kanan atas. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
+**Tampilan:** game dirender dalam **3D menggunakan Three.js**. Medan perangnya adalah **arena orbit luar angkasa** (cincin pertahanan melingkar, nebula berlapis, planet bercincin + satelit, sabuk asteroid dan kristal bercahaya, bintang berkedip, serta debu kosmik), bukan bidang grid kotak. **Musuh berupa kumbang alien** yang dibuat prosedural: cangkang, sayap keras (elytra), enam kaki, antena, mata majemuk bercahaya, taring dan tanduk. **Pesawat tetap spaceship futuristik** dengan 6 model (Vanguard, Raptor, Phantom + premium SPECTRE mini, NOVA sayap lebar, TITAN kapaltempur besar yang dibeli di Shop) dan 5 pilihan senjata (Pulse Cannon, Twin Blaster, Ion Lance yang menembus musuh, Nova Scatter 5 peluru, dan Plasma Core damage 2). Pilihan loadout disimpan di `localStorage`. Radar/sektor mini-map ada di sudut kanan atas. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
 
 ---
 
