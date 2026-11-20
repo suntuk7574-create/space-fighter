@@ -1,10 +1,13 @@
 """FastAPI backend untuk Space Fighter."""
 
+import os
 from datetime import date
+from pathlib import Path
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 
@@ -15,10 +18,12 @@ from .security import hash_password, verify_password
 
 app = FastAPI(title="Space Fighter API", version="1.0.0")
 
-# Frontend dijalankan dari file:// atau localhost, jadi CORS dibuka saat dev.
+# Saat di-deploy, frontend dan API bisa satu origin. FRONTEND_ORIGIN dipakai
+# hanya jika frontend di-host di domain berbeda. Default:* untuk kemudahan dev.
+_origins = [o.strip() for o in os.getenv("FRONTEND_ORIGIN", "*").split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_origins or ["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -299,3 +304,14 @@ def history(player_id: int, db: Session = Depends(get_db)):
 @app.get("/health")
 def health():
     return {"status": "ok", "game": "Space Fighter"}
+
+
+# Sajikan frontend dari satu URL yang sama dengan API.
+# Mount ditaruh paling bawah supaya rute /api, /docs, dan /health tetap menang.
+FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
+if FRONTEND_DIR.is_dir():
+    app.mount(
+        "/",
+        StaticFiles(directory=str(FRONTEND_DIR), html=True),
+        name="frontend",
+    )

@@ -204,7 +204,10 @@ const API_KEY = 'sf_api';
 const PLAYER_KEY = 'sf_player_id';
 const $ = id => document.getElementById(id);
 
-$('apiUrl').value = localStorage.getItem(API_KEY) || 'http://localhost:8000';
+const DEFAULT_API = (location.protocol === 'http:' || location.protocol === 'https:')
+  ? location.origin
+  : 'http://localhost:8000';
+$('apiUrl').value = localStorage.getItem(API_KEY) || DEFAULT_API;
 $('apiUrl').addEventListener('change', e => {
   localStorage.setItem(API_KEY, e.target.value.trim());
   checkConnection();
@@ -216,7 +219,7 @@ let equip = new Set();
 let session = null;
 
 async function api(path, options = {}) {
-  const base = (localStorage.getItem(API_KEY) || 'http://localhost:8000').replace(/\/$/, '');
+  const base = (localStorage.getItem(API_KEY) || DEFAULT_API).replace(/\/$/, '');
   const res = await fetch(base + path, {
     ...options,
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
