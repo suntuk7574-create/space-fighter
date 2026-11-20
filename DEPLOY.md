@@ -102,6 +102,12 @@ Alternatif: **Supabase** (Database → Connection string → URI) atau **Elephan
 **Fly.io** (`https://fly.io`):
 - `fly launch`, lalu `fly secrets set DATABASE_URL="..."`, lalu `fly deploy`.
 
+**Tunnel publik tanpa akun (demo cepat):**
+```powershell
+.\scripts\start-demo.ps1
+```
+Skrip menyalakan PostgreSQL portabel + backend + Cloudflare Tunnel. Beberapa detik kemudian muncul URL seperti `https://xxxx.trycloudflare.com` yang bisa langsung dibagikan. Tidak butuh akun GitHub/Render/Neon maupun hak admin. Kekurangannya: URL berubah setiap dijalankan ulang dan mati kalau laptop/terminal ditutup. Untuk URL permanen tetap gunakan Render.
+
 **Lokal tapi bisa diakses LAN** (tanpa cloud):
 ```powershell
 cd backend

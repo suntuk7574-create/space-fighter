@@ -77,6 +77,11 @@ class GameSession(Base):
     player = relationship("Player", back_populates="sessions")
     score_entry = relationship("Score", back_populates="session", uselist=False)
 
+    @property
+    def session_id(self) -> int:
+        """Alias supaya response_model SessionOut bisa membaca id sesi."""
+        return self.id
+
 
 class Score(Base):
     """Satu baris = satu run selesai. Sumber leaderboard & riwayat."""
