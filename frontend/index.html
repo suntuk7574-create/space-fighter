@@ -895,7 +895,7 @@ function updateHUD() {
 }
 function burst(x, y, color, n = 16) {
   const col = new THREE.Color(color);
-  for (let i = 0; i < n && particles.length < 560; i++) {
+  for (let i = 0; i < n && particles.length < PMAX; i++) {
     const a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * 180;
     particles.push({
       x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
@@ -1025,9 +1025,16 @@ function update(dt) {
 }
 
 /* ===================== THREE.JS 3D ===================== */
+/* Mode hemat daya otomatis di HP / layar sempit / perangkat inti sedikit. */
+const LOW_POWER = (window.matchMedia && (
+  window.matchMedia('(pointer: coarse)').matches ||
+  window.matchMedia('(max-width: 700px)').matches
+)) || (navigator.hardwareConcurrency || 8) <= 4;
+const PIXEL_CAP = LOW_POWER ? 1 : 1.5;
+
 const sceneCanvas = $('scene');
-const renderer = new THREE.WebGLRenderer({ canvas: sceneCanvas, antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+const renderer = new THREE.WebGLRenderer({ canvas: sceneCanvas, antialias: !LOW_POWER });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, PIXEL_CAP));
 renderer.setSize(W, H, false);
 renderer.outputEncoding = THREE.sRGBEncoding;
 
@@ -1158,7 +1165,7 @@ scene.add(arenaGlow);
 scene.add(arena);
 
 /* Lintang dengan kedalaman + kedip */
-const starCount = 1100;
+const starCount = LOW_POWER ? 620 : 1100;
 const starPos = new Float32Array(starCount * 3);
 const starSpeed = new Float32Array(starCount);
 for (let i = 0; i < starCount; i++) {
@@ -1176,7 +1183,7 @@ scene.add(starField);
 
 /* Sabuk asteroid + kristal bercahaya melayang */
 const rocks = new THREE.Group();
-for (let i = 0; i < 34; i++) {
+for (let i = 0; i < (LOW_POWER ? 18 : 34); i++) {
   const r = new THREE.Mesh(
     new THREE.IcosahedronGeometry(.5 + Math.random() * 1.8, 0),
     new THREE.MeshStandardMaterial({ color: 0x334466, roughness: 1, flatShading: true })
@@ -1186,7 +1193,7 @@ for (let i = 0; i < 34; i++) {
   r.userData.spin = (Math.random() - .5) * .4;
   rocks.add(r);
 }
-for (let i = 0; i < 12; i++) {
+for (let i = 0; i < (LOW_POWER ? 6 : 12); i++) {
   const c = new THREE.Mesh(
     new THREE.OctahedronGeometry(.35 + Math.random() * .7, 0),
     new THREE.MeshStandardMaterial({
@@ -1202,7 +1209,7 @@ for (let i = 0; i < 12; i++) {
 scene.add(rocks);
 
 /* Debu kosmik yang melayang naik */
-const dustCount = 240;
+const dustCount = LOW_POWER ? 120 : 240;
 const dustPos = new Float32Array(dustCount * 3);
 for (let i = 0; i < dustCount; i++) {
   dustPos[i * 3] = (Math.random() - .5) * 90;
@@ -1376,7 +1383,10 @@ function enhanceShip(g, id, info) {
     );
     outer.rotation.x = Math.PI / 2;
     outer.position.set(x, -.05, 2.15);
+    outer.userData.inner = false;
     g.add(outer);
+    flames.push(outer);
+    if (LOW_POWER) return;  // HP cukup pakai api luar saja.
     const inner = new THREE.Mesh(
       new THREE.ConeGeometry(id === 'titan' ? .2 : .14, 1.3, 8),
       new THREE.MeshBasicMaterial({
@@ -1386,8 +1396,9 @@ function enhanceShip(g, id, info) {
     );
     inner.rotation.x = Math.PI / 2;
     inner.position.set(x, -.05, 1.95);
+    inner.userData.inner = true;
     g.add(inner);
-    flames.push(outer, inner);
+    flames.push(inner);
   });
 
   g.userData.enhanced = { lights, aura, blades, halos, flames, engineXs };
@@ -1717,7 +1728,7 @@ function clearDynamic() {
   while (dynamic.children.length) dynamic.remove(dynamic.children[0]);
 }
 
-const PMAX = 560;
+const PMAX = LOW_POWER ? 260 : 560;
 const pPos = new Float32Array(PMAX * 3);
 const pCol = new Float32Array(PMAX * 3);
 const pGeo = new THREE.BufferGeometry();
@@ -1730,7 +1741,7 @@ const pPoints = new THREE.Points(pGeo, new THREE.PointsMaterial({
 scene.add(pPoints);
 
 /* Jejak plasma di belakang pesawat saat melaju. */
-const TMAX = 140;
+const TMAX = LOW_POWER ? 70 : 140;
 const tPos = new Float32Array(TMAX * 3);
 const tCol = new Float32Array(TMAX * 3);
 const trailGeo = new THREE.BufferGeometry();
@@ -1781,7 +1792,7 @@ function syncMeshes(ts) {
     const boost = 1 + Math.min(1, Math.abs(ship.vx) / 380) * .5 + Math.sin(ts * .014) * .12;
     enhanced.flames.forEach((f, i) => {
       f.scale.set(1, boost, 1);
-      f.material.opacity = (i % 2 ? .85 : .5) * (.85 + Math.sin(ts * .02 + i) * .15);
+      f.material.opacity = (f.userData.inner ? .85 : .55) * (.85 + Math.sin(ts * .02 + i) * .15);
     });
   }
 
@@ -1790,7 +1801,7 @@ function syncMeshes(ts) {
     lastTrailEmit = ts;
     engineGlow.getWorldPosition(shipWorldPos);
     const col = new THREE.Color((SHIP_MODELS[selectedShip] || SHIP_MODELS.vanguard).color);
-    for (let i = 0; i < 2 && trailParticles.length < TMAX; i++) {
+    for (let i = 0; i < (LOW_POWER ? 1 : 2) && trailParticles.length < TMAX; i++) {
       trailParticles.push({
         x: shipWorldPos.x + (Math.random() - .5) * .35 - playerShip.rotation.z * .6,
         y: shipWorldPos.y + (Math.random() - .5) * .2,

@@ -16,6 +16,7 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 - Akun, koin, inventory, item, riwayat sesi, dan **leaderboard global** tersimpan di database relasional.
 - **Login pakai email + password** (email unik, username dibuat otomatis). Sesi tersimpan di browser → **auto-login**, tidak perlu login lagi saat membuka ulang link di perangkat yang sama.
 - Radar/mini-map sektor, efek partikel, glow, dan kontrol: keyboard (A/D, ←/→, SPACE), tombol sentuh ◀ ▶ 🔫 di HP, atau geser jari untuk mengarahkan pesawat. Tampilan game melebar penuh di layar HP + tombol layar penuh.
+- **Mode hemat daya otomatis di HP**: pixel ratio diturunkan, antialias dimatikan, jumlah bintang/debu/asteroid/jejak plasma dipangkas, dan api mesin disederhanakan. Kualitas tetap tinggi di desktop.
 - Halaman login/daftar bergaya landing page (orbit animasi, tab Login/Daftar) dan HUD game yang dipoles.
 - **Admin console khusus satu akun**: statistik global + tabel pemain, skor, dan sesi. Dilindungi token HMAC 24 jam.
 
