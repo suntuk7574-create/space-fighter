@@ -1253,6 +1253,88 @@ function addEngines(group, xs, radius, color) {
   return first;
 }
 
+/* Detail ekstra biar tiap pesawat terasa "hidup": lampu, aura, flame, garis lambung. */
+function enhanceShip(g, id, info) {
+  const tipX = {
+    raptor: 2.6, phantom: 2.75, spectre: 1.05,
+    nova: 2.85, titan: 4.05, vanguard: 1.85
+  }[id] || 1.8;
+  const engineXs = {
+    raptor: [-1.05, 1.05], phantom: [-1.7, 1.7], spectre: [0],
+    nova: [-1.25, 1.25], titan: [-1.5, -.5, .5, 1.5], vanguard: [-1.2, 1.2]
+  }[id] || [-1.2, 1.2];
+
+  /* Navigation light: merah di kiri, hijau di kanan, ikut berkedip. */
+  const lights = [];
+  [-1, 1].forEach(side => {
+    const light = new THREE.Mesh(
+      new THREE.SphereGeometry(id === 'titan' ? .18 : .13, 10, 8),
+      new THREE.MeshBasicMaterial({
+        color: side < 0 ? 0xff4f7b : 0x6dff9e,
+        transparent: true, opacity: .95,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      })
+    );
+    light.position.set(side * tipX, .08, .45);
+    g.add(light);
+    lights.push(light);
+  });
+
+  /* Cahaya aura melingkar mengikuti warna pesawat. */
+  const aura = new THREE.Mesh(
+    new THREE.TorusGeometry(tipX * .92, .035, 6, 48),
+    new THREE.MeshBasicMaterial({
+      color: info.color, transparent: true, opacity: .32,
+      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+    })
+  );
+  aura.rotation.x = Math.PI / 2.15;
+  aura.position.z = .35;
+  g.add(aura);
+
+  /* Garis lampu di lambung + ventilasi. */
+  const lineMat = new THREE.MeshBasicMaterial({
+    color: info.color, transparent: true, opacity: .7,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  [-1, 1].forEach(side => {
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(.055, .045, 2.1), lineMat);
+    stripe.position.set(side * .32, .2, -.25);
+    g.add(stripe);
+    const vent = new THREE.Mesh(new THREE.BoxGeometry(.35, .04, .16), lineMat);
+    vent.position.set(side * .75, .16, .95);
+    g.add(vent);
+  });
+
+  /* Api mesin: kerucut luar berwarna + inti putih, ikut memanjang saat ngebut. */
+  const flames = [];
+  engineXs.forEach(x => {
+    const outer = new THREE.Mesh(
+      new THREE.ConeGeometry(id === 'titan' ? .42 : .3, 1.9, 10),
+      new THREE.MeshBasicMaterial({
+        color: info.color, transparent: true, opacity: .5,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      })
+    );
+    outer.rotation.x = Math.PI / 2;
+    outer.position.set(x, -.05, 2.15);
+    g.add(outer);
+    const inner = new THREE.Mesh(
+      new THREE.ConeGeometry(id === 'titan' ? .2 : .14, 1.3, 8),
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff, transparent: true, opacity: .85,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      })
+    );
+    inner.rotation.x = Math.PI / 2;
+    inner.position.set(x, -.05, 1.95);
+    g.add(inner);
+    flames.push(outer, inner);
+  });
+
+  g.userData.enhanced = { lights, aura, flames, engineXs };
+}
+
 /* ---- KUMBANG ALIEN: cangkang, elytra, taring, kaki, mata majemuk ---- */
 function buildBeetle(g, p, style, dir, s) {
   const shell = new THREE.MeshStandardMaterial({
@@ -1517,6 +1599,7 @@ function buildShipModel(id) {
     g.add(glass);
     engine = addEngines(g, [-1.2, 1.2], .55, info.color);
   }
+  enhanceShip(g, id, info);
   g.userData.parts = { wings, fins, glass };
   return { group: g, engine };
 }
@@ -1529,6 +1612,7 @@ function setShipModel(id) {
   playerShip.add(built.group);
   engineGlow = built.engine;
   playerShip.userData.parts = built.group.userData.parts;
+  playerShip.userData.enhanced = built.group.userData.enhanced;
 }
 setShipModel(selectedShip);
 applyShipStats();
@@ -1587,6 +1671,21 @@ const pPoints = new THREE.Points(pGeo, new THREE.PointsMaterial({
 }));
 scene.add(pPoints);
 
+/* Jejak plasma di belakang pesawat saat melaju. */
+const TMAX = 140;
+const tPos = new Float32Array(TMAX * 3);
+const tCol = new Float32Array(TMAX * 3);
+const trailGeo = new THREE.BufferGeometry();
+trailGeo.setAttribute('position', new THREE.BufferAttribute(tPos, 3));
+trailGeo.setAttribute('color', new THREE.BufferAttribute(tCol, 3));
+const trailPoints = new THREE.Points(trailGeo, new THREE.PointsMaterial({
+  size: .75, vertexColors: true, transparent: true, opacity: .9,
+  blending: THREE.AdditiveBlending, depthWrite: false
+}));
+scene.add(trailPoints);
+let trailParticles = [], lastTrailEmit = 0;
+const shipWorldPos = new THREE.Vector3();
+
 const toWorldX = x => (x / W - .5) * worldSpan;
 const toWorldZ = y => -30 + (y / H) * 48;
 
@@ -1601,6 +1700,58 @@ function syncMeshes(ts) {
     const pulse = 1 + Math.sin(ts * .012) * .18;
     engineGlow.scale.set(pulse, pulse, pulse * .55);
   }
+
+  /* Detail hidup: kedip lampu, aura berputar, api mesin ikut akselerasi. */
+  playerShip.updateMatrixWorld(true);
+  const enhanced = playerShip.userData.enhanced;
+  if (enhanced) {
+    enhanced.lights.forEach((l, i) => {
+      l.material.opacity = .55 + Math.abs(Math.sin(ts * .006 + i * Math.PI)) * .45;
+      l.scale.setScalar(1 + Math.sin(ts * .01 + i) * .18);
+    });
+    enhanced.aura.rotation.z += .006 + Math.abs(ship.vx) * .000004;
+    enhanced.aura.material.opacity = .22 + Math.abs(Math.sin(ts * .0025)) * .16;
+    const boost = 1 + Math.min(1, Math.abs(ship.vx) / 380) * .5 + Math.sin(ts * .014) * .12;
+    enhanced.flames.forEach((f, i) => {
+      f.scale.set(1, boost, 1);
+      f.material.opacity = (i % 2 ? .85 : .5) * (.85 + Math.sin(ts * .02 + i) * .15);
+    });
+  }
+
+  /* Jejak plasma mengikuti posisi mesin utama. */
+  if (engineGlow && ts - lastTrailEmit > 26) {
+    lastTrailEmit = ts;
+    engineGlow.getWorldPosition(shipWorldPos);
+    const col = new THREE.Color((SHIP_MODELS[selectedShip] || SHIP_MODELS.vanguard).color);
+    for (let i = 0; i < 2 && trailParticles.length < TMAX; i++) {
+      trailParticles.push({
+        x: shipWorldPos.x + (Math.random() - .5) * .35 - playerShip.rotation.z * .6,
+        y: shipWorldPos.y + (Math.random() - .5) * .2,
+        z: shipWorldPos.z + 1.1 + Math.random() * .4,
+        vx: (Math.random() - .5) * .012,
+        life: 1,
+        col
+      });
+    }
+  }
+  for (let i = trailParticles.length - 1; i >= 0; i--) {
+    const p = trailParticles[i];
+    p.z += .34;
+    p.x += p.vx;
+    p.life -= .035;
+    if (p.life <= 0) trailParticles.splice(i, 1);
+  }
+  trailParticles.forEach((p, i) => {
+    const k = i * 3;
+    tPos[k] = p.x; tPos[k + 1] = p.y; tPos[k + 2] = p.z;
+    tCol[k] = p.col.r * p.life;
+    tCol[k + 1] = p.col.g * p.life;
+    tCol[k + 2] = p.col.b * p.life;
+  });
+  trailGeo.setDrawRange(0, trailParticles.length);
+  trailGeo.attributes.position.needsUpdate = true;
+  trailGeo.attributes.color.needsUpdate = true;
+
   const shipParts = playerShip.userData.parts;
   if (shipParts) {
     shipParts.wings.forEach((w, i) => {
