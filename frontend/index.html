@@ -750,6 +750,7 @@ let running = false, paused = false, over = false;
 let score = 0, wave = 1, lives = 3, combo = 0, maxCombo = 0, kills = 0;
 let bullets = [], enemies = [], drops = [], particles = [];
 let keys = { left: false, right: false, fire: false, pointerX: null };
+let firingSide = 1; // peluru satu-laras bergantian dari sayap kiri/kanan
 let ship = { x: W / 2, y: H - 60, w: 38, h: 40, vx: 0 };
 let cooldown = 0, lastTime = 0, startedAt = 0, shake = 0;
 
@@ -877,6 +878,7 @@ function resetGame() {
   bullets = []; enemies = []; drops = []; particles = [];
   ship.x = W / 2;
   ship.vx = 0;
+  firingSide = 1;
   keys.left = keys.right = keys.fire = false;
   keys.pointerX = null;
   cooldown = 0; paused = false; over = false; shake = 0;
@@ -907,6 +909,15 @@ function burst(x, y, color, n = 16) {
 function rectHit(a, b) {
   return Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2;
 }
+function getWingGun(side) {
+  const guns = playerShip.userData.enhanced?.guns || [];
+  return guns.find(g => g.side === side) || guns[0] || null;
+}
+function wingGunOffset(side) {
+  const gun = getWingGun(side);
+  if (!gun) return side * 9;
+  return gun.x * playerShip.scale.x * W / worldSpan;
+}
 function fireWeapon() {
   const w = WEAPONS[selectedWeapon] || WEAPONS.pulse;
   const stats = SHIP_MODELS[selectedShip] || SHIP_MODELS.vanguard;
@@ -914,8 +925,16 @@ function fireWeapon() {
   const fireScale = stats.fireScale || 1;
   for (let s = 0; s < w.shots; s++) {
     const t = w.shots === 1 ? 0 : (s / (w.shots - 1) - .5);
+    const side = w.shots === 2 ? (s ? 1 : -1)
+      : w.shots > 2 ? (s % 2 ? 1 : -1)
+      : (firingSide = -firingSide);
+    const gun = getWingGun(side);
+    if (gun) {
+      gun.flash.material.opacity = 1;
+      gun.flash.scale.setScalar(2.4);
+    }
     const b = {
-      x: ship.x + (w.shots === 2 ? (s ? 9 : -9) : t * 12),
+      x: ship.x + wingGunOffset(side) + t * 6,
       y: ship.y - 24,
       vx: t * w.spread * 560,
       speed: w.speed, dmg, pierce: w.pierce, hit: new Set(),
@@ -1388,6 +1407,36 @@ function enhanceShip(g, id, info) {
     halos.push(tipHalo);
   });
 
+  /* Meriam di ujung sayap kiri & kanan + kilat saat menembak. */
+  const guns = [];
+  const gunMat = new THREE.MeshStandardMaterial({
+    color: 0x14294a, metalness: .9, roughness: .25,
+    emissive: info.color, emissiveIntensity: .4
+  });
+  [-1, 1].forEach(side => {
+    const gun = new THREE.Group();
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(.085, .12, 1.15, 8), gunMat);
+    barrel.rotation.x = -Math.PI / 2;
+    barrel.position.z = -.25;
+    gun.add(barrel);
+    const muzzle = new THREE.Mesh(
+      new THREE.SphereGeometry(.13, 8, 6),
+      new THREE.MeshBasicMaterial({ color: info.color })
+    );
+    muzzle.position.z = -.85;
+    gun.add(muzzle);
+    const flash = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: getShipGlowTexture(), color: 0xffd166, transparent: true, opacity: 0,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    flash.scale.set(1.6, 1.6, 1);
+    flash.position.z = -1;
+    gun.add(flash);
+    gun.position.set(side * tipX * .88, -.05, .15);
+    g.add(gun);
+    guns.push({ side, x: side * tipX * .88, group: gun, muzzle, flash });
+  });
+
   /* Garis lampu di lambung + ventilasi. */
   const lineMat = new THREE.MeshBasicMaterial({
     color: info.color, transparent: true, opacity: .7,
@@ -1432,7 +1481,7 @@ function enhanceShip(g, id, info) {
     flames.push(inner);
   });
 
-  g.userData.enhanced = { lights, aura, blades, halos, flames, engineXs };
+  g.userData.enhanced = { lights, aura, blades, halos, guns, flames, engineXs };
 }
 
 /* ---- KUMBANG ALIEN: cangkang, elytra, taring, kaki, mata majemuk ---- */
@@ -1813,6 +1862,13 @@ function syncMeshes(ts) {
     enhanced.aura.material.opacity = .22 + Math.abs(Math.sin(ts * .0025)) * .16;
     enhanced.blades.forEach((b, i) => {
       b.material.opacity = .55 + Math.abs(Math.sin(ts * .005 + i)) * .4;
+    });
+    enhanced.guns.forEach(gun => {
+      const f = gun.flash;
+      f.material.opacity = Math.max(0, f.material.opacity - .06);
+      const s = 1.6 + f.material.opacity * 1.1;
+      f.scale.set(s, s, 1);
+      gun.muzzle.scale.setScalar(1 + f.material.opacity * .6);
     });
     enhanced.halos.forEach((h, i) => {
       const s = 1 + Math.sin(ts * .006 + i * 1.7) * .12;
