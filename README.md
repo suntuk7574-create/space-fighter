@@ -9,7 +9,7 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 ## ✨ Fitur
 
 - Arena luar angkasa 3D: cincin orbit, nebula, planet bercincin, sabuk asteroid, bintang, dan debu kosmik (bukan grid datar).
-- 6 spaceship futuristik dengan animasi 3D: **Vanguard**, **Raptor**, **Phantom**, plus premium **SPECTRE** (mini & paling lincah), **NOVA** (sayap lebar bercahaya), dan **TITAN** (kapaltempur besar, 4 mesin). Kecepatan & ukuran tiap pesawat berbeda; premium dibeli di Shop dengan koin.
+- 6 spaceship futuristik dengan animasi 3D & **glow neon warna khas tiap pesawat**: **Vanguard** (biru), **Raptor** (oranye), **Phantom** (ungu), plus premium **SPECTRE** (mini & paling lincah, mint), **NOVA** (sayap sweep + inti emas), dan **TITAN** (kapaltempur besar, 4 mesin, hijau). Bilah sayap tajam, lampu navigasi berkedip, api mesin, aura energi, dan jejak plasma makin terang saat pesawat bergerak. Premium dibeli di Shop dengan koin.
 - 5 senjata dengan perilaku berbeda: **Pulse Cannon**, **Twin Blaster**, **Ion Lance** (tembus 3 musuh), **Nova Scatter** (5 peluru), **Plasma Core** (damage 2).
 - Musuh kumbang alien: **Scarab**, **Stag Beetle**, dan **Rhino Beetle** (boss tiap wave ke-5).
 - **Seed harian** deterministik (SHA-256 + LCG) sehingga pola spawn sama untuk semua pemain.

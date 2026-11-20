@@ -1253,6 +1253,24 @@ function addEngines(group, xs, radius, color) {
   return first;
 }
 
+/* Texture halo radial dipakai sprite biar efek glow-nya "bloom" tanpa post-processing. */
+let shipGlowTexture = null;
+function getShipGlowTexture() {
+  if (shipGlowTexture) return shipGlowTexture;
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(255,255,255,1)');
+  grad.addColorStop(.25, 'rgba(255,255,255,.75)');
+  grad.addColorStop(.6, 'rgba(255,255,255,.18)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+  shipGlowTexture = new THREE.CanvasTexture(c);
+  return shipGlowTexture;
+}
+
 /* Detail ekstra biar tiap pesawat terasa "hidup": lampu, aura, flame, garis lambung. */
 function enhanceShip(g, id, info) {
   const tipX = {
@@ -1291,6 +1309,46 @@ function enhanceShip(g, id, info) {
   aura.rotation.x = Math.PI / 2.15;
   aura.position.z = .35;
   g.add(aura);
+
+  /* Bilah sayap tajam bercahaya di sepanjang tepi depan. */
+  const blades = [];
+  [-1, 1].forEach(side => {
+    const blade = new THREE.Mesh(
+      new THREE.ConeGeometry(.11, tipX * 1.5, 3),
+      new THREE.MeshBasicMaterial({
+        color: info.color, transparent: true, opacity: .8,
+        blending: THREE.AdditiveBlending, depthWrite: false
+      })
+    );
+    blade.rotation.z = side * -Math.PI / 2;
+    blade.position.set(side * tipX * .5, .14, .2);
+    g.add(blade);
+    blades.push(blade);
+  });
+
+  /* Halo sprite: efek bloom neon mengikuti warna tiap pesawat. */
+  const tex = getShipGlowTexture();
+  const halos = [];
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, color: info.color, transparent: true, opacity: .38,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  halo.scale.set(tipX * 2.3, tipX * 1.2, 1);
+  halo.userData.baseScale = [tipX * 2.3, tipX * 1.2];
+  halo.position.set(0, .05, 1.05);
+  g.add(halo);
+  halos.push(halo);
+  [-1, 1].forEach(side => {
+    const tipHalo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: tex, color: side < 0 ? 0xff4f7b : 0x6dff9e, transparent: true, opacity: .7,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    tipHalo.scale.set(1.1, 1.1, 1);
+    tipHalo.userData.baseScale = [1.1, 1.1];
+    tipHalo.position.set(side * tipX, .08, .45);
+    g.add(tipHalo);
+    halos.push(tipHalo);
+  });
 
   /* Garis lampu di lambung + ventilasi. */
   const lineMat = new THREE.MeshBasicMaterial({
@@ -1332,7 +1390,7 @@ function enhanceShip(g, id, info) {
     flames.push(outer, inner);
   });
 
-  g.userData.enhanced = { lights, aura, flames, engineXs };
+  g.userData.enhanced = { lights, aura, blades, halos, flames, engineXs };
 }
 
 /* ---- KUMBANG ALIEN: cangkang, elytra, taring, kaki, mata majemuk ---- */
@@ -1447,15 +1505,15 @@ function buildShipModel(id) {
   const info = SHIP_MODELS[id] || SHIP_MODELS.vanguard;
   const hull = new THREE.MeshStandardMaterial({
     color: 0x0d2b52, metalness: .88, roughness: .2,
-    emissive: info.color, emissiveIntensity: .3
+    emissive: info.color, emissiveIntensity: .48
   });
   const trim = new THREE.MeshStandardMaterial({
     color: info.color, metalness: .7, roughness: .26,
-    emissive: info.color, emissiveIntensity: .6
+    emissive: info.color, emissiveIntensity: .95
   });
   const canopy = new THREE.MeshStandardMaterial({
     color: 0xbff6ff, metalness: .25, roughness: .08,
-    emissive: 0x4fd8ff, emissiveIntensity: .55
+    emissive: 0x4fd8ff, emissiveIntensity: .85
   });
   let engine;
   const wings = [], fins = [];
@@ -1711,6 +1769,15 @@ function syncMeshes(ts) {
     });
     enhanced.aura.rotation.z += .006 + Math.abs(ship.vx) * .000004;
     enhanced.aura.material.opacity = .22 + Math.abs(Math.sin(ts * .0025)) * .16;
+    enhanced.blades.forEach((b, i) => {
+      b.material.opacity = .55 + Math.abs(Math.sin(ts * .005 + i)) * .4;
+    });
+    enhanced.halos.forEach((h, i) => {
+      const s = 1 + Math.sin(ts * .006 + i * 1.7) * .12;
+      const [bw, bh] = h.userData.baseScale || [1.1, 1.1];
+      h.scale.set(bw * s, bh * s, 1);
+      h.material.opacity = (i === 0 ? .32 : .6) + Math.abs(Math.sin(ts * .004 + i)) * .18;
+    });
     const boost = 1 + Math.min(1, Math.abs(ship.vx) / 380) * .5 + Math.sin(ts * .014) * .12;
     enhanced.flames.forEach((f, i) => {
       f.scale.set(1, boost, 1);
