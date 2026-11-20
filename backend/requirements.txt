@@ -1,0 +1,14 @@
+# Backend wajib: FastAPI + SQLAlchemy ORM
+fastapi
+uvicorn[standard]
+SQLAlchemy
+pydantic
+
+# Driver PostgreSQL (boleh diganti driver MySQL/MariaDB lewat DATABASE_URL)
+psycopg[binary]
+
+# Membaca file .env agar tidak perlu set environment variable manual
+python-dotenv
+
+# Testing logika game tanpa database
+pytest

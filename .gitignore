@@ -1,0 +1,11 @@
+# Jangan pernah commit kredensial database
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environment (opsional)
+.venv/
+venv/

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Space Fighter - Orbit Defense</title>
+<style>
+  :root {
+    --bg: #050817;
+    --panel: #0e1633;
+    --line: #243065;
+    --text: #e8eeff;
+    --muted: #93a0cc;
+    --cyan: #38e8ff;
+    --pink: #ff4fa3;
+    --gold: #ffd166;
+    --green: #4ade80;
+    --red: #ff5c5c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at 20% 10%, #18245a 0%, transparent 45%),
+      radial-gradient(circle at 80% 80%, #3a1250 0%, transparent 45%),
+      var(--bg);
+    padding: 20px 12px 40px;
+  }
+  .app { max-width: 860px; margin: 0 auto; }
+  header { text-align: center; margin-bottom: 16px; }
+  .logo { font-size: 44px; }
+  h1 {
+    margin: 4px 0 2px;
+    font-size: 32px;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, var(--cyan), var(--pink));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .tagline { color: var(--muted); margin: 0; font-size: 14px; }
+
+  .topbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .pill { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 7px 13px; font-size: 12px; color: var(--muted); }
+  .pill.ok { color: var(--green); border-color: #1e6b45; }
+  .pill.err { color: var(--red); border-color: #7a2b2b; }
+  .pill.player { color: var(--gold); }
+
+  .panel {
+    background: linear-gradient(160deg, rgba(20,30,70,.95), rgba(10,14,35,.95));
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 18px 50px rgba(0,0,0,.45);
+  }
+  .panel h2 { margin: 0 0 14px; font-size: 20px; }
+  .hidden { display: none !important; }
+
+  label { display: block; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+  input {
+    width: 100%; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: #070c20; color: var(--text);
+    font-size: 14px;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  button {
+    border: 0; border-radius: 10px; padding: 11px 18px; cursor: pointer;
+    font-weight: 700; font-size: 14px; color: #fff;
+    background: linear-gradient(90deg, #1f7ae0, var(--pink));
+    transition: transform .12s ease, filter .12s ease;
+  }
+  button:hover { transform: translateY(-2px); filter: brightness(1.1); }
+  button.secondary { background: #273265; }
+  button.small { padding: 7px 12px; font-size: 12px; }
+  button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+  .msg { min-height: 20px; font-size: 13px; color: var(--gold); margin-top: 10px; }
+  .msg.bad { color: var(--red); }
+
+  .hud { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; margin-bottom: 10px; }
+  .hud .box { background: #070c20; border: 1px solid var(--line); border-radius: 10px; padding: 7px 12px; font-size: 13px; }
+  .hud b { color: var(--cyan); }
+  canvas {
+    width: 100%; height: auto; display: block; border-radius: 12px;
+    background: #03060f; border: 1px solid var(--line);
+  }
+  .hint { text-align: center; color: var(--muted); font-size: 12px; margin: 10px 0 0; }
+
+  .item {
+    display: grid; grid-template-columns: 1fr auto; gap: 4px 12px;
+    background: #070c20; border: 1px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; margin-bottom: 10px; align-items: center;
+  }
+  .item b { color: var(--cyan); }
+  .item span { font-size: 12px; color: var(--muted); }
+  .item small { display: block; color: var(--gold); margin-top: 3px; }
+  .equip { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+  .equip label { display: flex; gap: 7px; align-items: center; background: #070c20; border: 1px solid var(--line); padding: 9px 12px; border-radius: 10px; margin: 0; font-size: 13px; color: var(--text); }
+  .equip input { width: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-size: 11px; text-transform: uppercase; }
+  td.rank { color: var(--gold); font-weight: 800; }
+  .empty { color: var(--muted); text-align: center; padding: 20px; font-size: 13px; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(2,5,16,.82);
+    display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10;
+  }
+  .modal { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 26px; max-width: 380px; width: 100%; text-align: center; }
+  .modal .icon { font-size: 48px; }
+  .modal h2 { margin: 6px 0; }
+  .modal p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .final { font-size: 34px; font-weight: 900; color: var(--gold); margin: 8px 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">🚀👾</div>
+    <h1>SPACE FIGHTER</h1>
+    <p class="tagline">Orbit Defense — seed harian, combo, dan leaderboard online</p>
+  </header>
+
+  <div class="topbar">
+    <div class="pill" id="conn">Mengecek server...</div>
+    <div class="pill player" id="playerInfo">Belum login</div>
+    <button class="secondary small" id="btnLobby">Lobby</button>
+    <button class="secondary small" id="btnShop">Shop</button>
+    <button class="secondary small" id="btnBoard">Leaderboard</button>
+  </div>
+
+  <section class="panel" id="authPanel">
+    <h2>Masuk / Daftar Pilot</h2>
+    <label>Alamat API Backend</label>
+    <input id="apiUrl" placeholder="http://localhost:8000">
+    <div class="row" style="margin-top:10px">
+      <input id="regUser" placeholder="username" style="flex:1;min-width:150px">
+      <input id="regName" placeholder="nama tampilan" style="flex:1;min-width:150px">
+    </div>
+    <label>Password</label>
+    <input id="regPass" type="password" placeholder="minimal 4 karakter">
+    <div class="row">
+      <button id="btnRegister">Daftar</button>
+      <button class="secondary" id="btnLogin">Login</button>
+    </div>
+    <div class="msg" id="authMsg"></div>
+  </section>
+
+  <section class="panel hidden" id="lobbyPanel">
+    <h2>Lobby</h2>
+    <p class="tagline">Pilih item yang ingin dipakai (harus dibeli dulu di Shop).</p>
+    <div class="equip" id="equipBox"></div>
+    <div class="row"><button id="btnStart">🚀 Mulai Serangan</button></div>
+    <div class="msg" id="lobbyMsg"></div>
+  </section>
+
+  <section class="panel hidden" id="gamePanel">
+    <div class="hud">
+      <div class="box">Skor <b id="hudScore">0</b></div>
+      <div class="box">Wave <b id="hudWave">1</b></div>
+      <div class="box">Nyawa <b id="hudLives">3</b></div>
+      <div class="box">Combo <b id="hudCombo">0</b></div>
+      <div class="box">Seed <b id="hudSeed">-</b></div>
+      <div class="box" id="hudStatus">LIVE</div>
+    </div>
+    <canvas id="game" width="800" height="520"></canvas>
+    <p class="hint">A / D atau ← → untuk gerak · SPACE untuk menembak · P untuk pause</p>
+  </section>
+
+  <section class="panel hidden" id="shopPanel">
+    <h2>Shop Item</h2>
+    <div id="shopList"></div>
+    <div class="msg" id="shopMsg"></div>
+  </section>
+
+  <section class="panel hidden" id="boardPanel">
+    <h2>Leaderboard</h2>
+    <div id="boardList"></div>
+  </section>
+</div>
+
+<div class="overlay hidden" id="overlay">
+  <div class="modal">
+    <div class="icon" id="resultIcon">🏆</div>
+    <h2 id="resultTitle">Run Selesai</h2>
+    <div class="final" id="resultScore">0</div>
+    <p id="resultText"></p>
+    <div class="row" style="justify-content:center">
+      <button id="btnAgain">Main Lagi</button>
+      <button class="secondary" id="btnMenu">Menu</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ===================== KONFIG & API ===================== */
+const API_KEY = 'sf_api';
+const PLAYER_KEY = 'sf_player_id';
+const $ = id => document.getElementById(id);
+
+$('apiUrl').value = localStorage.getItem(API_KEY) || 'http://localhost:8000';
+$('apiUrl').addEventListener('change', e => {
+  localStorage.setItem(API_KEY, e.target.value.trim());
+  checkConnection();
+});
+
+let player = null;
+let inventory = [];
+let equip = new Set();
+let session = null;
+
+async function api(path, options = {}) {
+  const base = (localStorage.getItem(API_KEY) || 'http://localhost:8000').replace(/\/$/, '');
+  const res = await fetch(base + path, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
+  if (!res.ok) throw new Error((data && data.detail) || ('HTTP ' + res.status));
+  return data;
+}
+
+async function checkConnection() {
+  try {
+    await api('/health');
+    $('conn').textContent = '● Server terhubung';
+    $('conn').className = 'pill ok';
+    return true;
+  } catch (e) {
+    $('conn').textContent = '● Server offline';
+    $('conn').className = 'pill err';
+    return false;
+  }
+}
+
+function showPanel(id) {
+  ['authPanel', 'lobbyPanel', 'gamePanel', 'shopPanel', 'boardPanel'].forEach(p => $(p).classList.add('hidden'));
+  if (id) $(id).classList.remove('hidden');
+}
+
+function setMsg(el, text, bad) {
+  el.textContent = text;
+  el.className = 'msg' + (bad ? ' bad' : '');
+}
+
+/* ===================== AUTH ===================== */
+async function doAuth(mode) {
+  const body = {
+    username: $('regUser').value.trim(),
+    display_name: $('regName').value.trim() || $('regUser').value.trim(),
+    password: $('regPass').value
+  };
+  try {
+    player = await api('/api/players/' + mode, { method: 'POST', body: JSON.stringify(body) });
+    localStorage.setItem(PLAYER_KEY, String(player.id));
+    await afterLogin();
+  } catch (e) {
+    setMsg($('authMsg'), e.message, true);
+  }
+}
+
+$('btnRegister').addEventListener('click', () => doAuth('register'));
+$('btnLogin').addEventListener('click', () => doAuth('login'));
+
+async function afterLogin() {
+  $('playerInfo').textContent = `${player.display_name} · ${player.coins} koin`;
+  await refreshInventory();
+  showPanel('lobbyPanel');
+}
+
+async function restorePlayer() {
+  const id = localStorage.getItem(PLAYER_KEY);
+  if (!id) return;
+  try {
+    player = await api('/api/players/' + id);
+    await afterLogin();
+  } catch (e) {
+    localStorage.removeItem(PLAYER_KEY);
+    showPanel('authPanel');
+  }
+}
+
+/* ===================== INVENTORY / EQUIP ===================== */
+async function refreshInventory() {
+  if (!player) return;
+  inventory = await api('/api/players/' + player.id + '/inventory');
+  renderEquip();
+  renderShop();
+}
+
+function renderEquip() {
+  const box = $('equipBox');
+  box.innerHTML = '';
+  if (!inventory.length) {
+    box.innerHTML = '<span class="tagline">Belum punya item. Buka Shop dulu.</span>';
+    return;
+  }
+  inventory.forEach(row => {
+    if (row.quantity < 1) return;
+    const label = document.createElement('label');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = equip.has(row.item_code);
+    cb.addEventListener('change', () => cb.checked ? equip.add(row.item_code) : equip.delete(row.item_code));
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(`${row.name} (${row.quantity})`));
+    box.appendChild(label);
+  });
+}
+
+/* ===================== SHOP ===================== */
+async function renderShop() {
+  try {
+    const items = await api('/api/items');
+    $('shopList').innerHTML = items.map(it => `
+      <div class="item">
+        <div><b>${it.name}</b><br><span>${it.description}</span><small>${it.price} koin</small></div>
+        <button class="small" data-buy="${it.code}">Beli</button>
+      </div>`).join('');
+    $('shopList').querySelectorAll('[data-buy]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!player) return setMsg($('shopMsg'), 'Login dulu ya.', true);
+        try {
+          const res = await api(`/api/players/${player.id}/items/${btn.dataset.buy}/buy`, { method: 'POST' });
+          player = await api('/api/players/' + player.id);
+          $('playerInfo').textContent = `${player.display_name} · ${player.coins} koin`;
+          await refreshInventory();
+          setMsg($('shopMsg'), res.message);
+        } catch (e) { setMsg($('shopMsg'), e.message, true); }
+      });
+    });
+  } catch (e) { setMsg($('shopMsg'), e.message, true); }
+}
+
+/* ===================== LEADERBOARD ===================== */
+async function renderBoard() {
+  try {
+    const rows = await api('/api/leaderboard?limit=10');
+    $('boardList').innerHTML = rows.length
+      ? '<table><thead><tr><th>#</th><th>Pilot</th><th>Skor</th><th>Wave</th><th>Kill</th></tr></thead><tbody>' +
+        rows.map(r => `<tr><td class="rank">${r.rank}</td><td>${r.display_name}</td><td>${r.score}</td><td>${r.wave}</td><td>${r.enemies_killed}</td></tr>`).join('') +
+        '</tbody></table>'
+      : '<div class="empty">Belum ada skor. Jadi yang pertama!</div>';
+  } catch (e) { $('boardList').innerHTML = '<div class="empty">' + e.message + '</div>'; }
+}
+
+$('btnLobby').addEventListener('click', () => player ? showPanel('lobbyPanel') : showPanel('authPanel'));
+$('btnShop').addEventListener('click', () => { showPanel('shopPanel'); renderShop(); });
+$('btnBoard').addEventListener('click', () => { showPanel('boardPanel'); renderBoard(); });
+
+/* ===================== GAME ===================== */
+const canvas = $('game');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+
+let running = false, paused = false, over = false;
+let score = 0, wave = 1, lives = 3, combo = 0, maxCombo = 0, kills = 0;
+let bullets = [], enemies = [], drops = [], particles = [], stars = [];
+let keys = { left: false, right: false, fire: false };
+let ship = { x: W / 2, y: H - 60, w: 38, h: 40 };
+let cooldown = 0, lastTime = 0, startedAt = 0, shake = 0;
+
+class LCG {
+  constructor(seed) { this.state = seed % 2147483648; }
+  random() {
+    this.state = Number((1103515245n * BigInt(this.state) + 12345n) % 2147483648n);
+    return this.state / 2147483648;
+  }
+  randint(a, b) { return a + Math.floor(this.random() * (b - a + 1)); }
+}
+
+function initStars() {
+  stars = Array.from({ length: 90 }, () => ({
+    x: Math.random() * W, y: Math.random() * H,
+    r: Math.random() * 1.6 + .4, s: Math.random() * 30 + 10
+  }));
+}
+
+function spawnWave() {
+  const rng = new LCG(session.seed + wave * 7919);
+  const count = Math.min(3 + wave, 10);
+  const baseSpeed = 60 + wave * 12;
+  const hp = wave < 3 ? 1 : wave < 6 ? 2 : 3;
+  const type = wave % 5 === 0 ? 'boss' : wave % 2 === 0 ? 'raider' : 'scout';
+  const size = type === 'boss' ? 54 : 36;
+  enemies = [];
+  for (let i = 0; i < count; i++) {
+    enemies.push({
+      x: rng.randint(40, W - 40), y: -40 - i * 55,
+      w: size, h: size,
+      speed: baseSpeed + rng.randint(-10, 10),
+      hp, maxHp: hp, type
+    });
+  }
+}
+
+function resetGame() {
+  score = 0; wave = 1; combo = 0; maxCombo = 0; kills = 0;
+  lives = 3 + (session.shield_active ? 1 : 0);
+  bullets = []; enemies = []; drops = []; particles = [];
+  ship.x = W / 2;
+  cooldown = 0; paused = false; over = false; shake = 0;
+  startedAt = performance.now();
+  initStars();
+  spawnWave();
+  updateHUD();
+  $('hudSeed').textContent = session.seed;
+  $('hudStatus').textContent = session.rapid_active ? 'LIVE · RAPID' : 'LIVE';
+}
+
+function updateHUD() {
+  $('hudScore').textContent = score;
+  $('hudWave').textContent = wave;
+  $('hudLives').textContent = lives;
+  $('hudCombo').textContent = combo;
+}
+
+function burst(x, y, color, n = 14) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 40 + Math.random() * 160;
+    particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: .5 + Math.random() * .4, color });
+  }
+}
+
+function rectHit(a, b) {
+  return Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2;
+}
+
+function killEnemy(index) {
+  const e = enemies[index];
+  combo++;
+  maxCombo = Math.max(maxCombo, combo);
+  kills++;
+  const base = e.type === 'boss' ? 300 : e.type === 'raider' ? 80 : 50;
+  score += base + wave * 5 + combo * 10;
+  burst(e.x, e.y, e.type === 'boss' ? '#ffd166' : '#38e8ff');
+  if (Math.random() < .14) {
+    drops.push({ x: e.x, y: e.y, w: 20, h: 20, type: Math.random() < .5 ? 'repair' : 'coin' });
+  }
+  enemies.splice(index, 1);
+  updateHUD();
+}
+
+function hitPlayer() {
+  lives--;
+  combo = 0;
+  shake = 9;
+  burst(ship.x, ship.y, '#ff5c5c', 22);
+  updateHUD();
+  if (lives <= 0) finishRun();
+}
+
+function update(dt) {
+  const speed = 330;
+  if (keys.left) ship.x -= speed * dt;
+  if (keys.right) ship.x += speed * dt;
+  ship.x = Math.max(24, Math.min(W - 24, ship.x));
+
+  cooldown -= dt;
+  if (keys.fire && cooldown <= 0) {
+    bullets.push({ x: ship.x, y: ship.y - 24, w: 8, h: 16 });
+    cooldown = session.rapid_active ? .12 : .22;
+  }
+  bullets.forEach(b => { b.y -= 620 * dt; });
+  bullets = bullets.filter(b => b.y > -20);
+
+  enemies.forEach(e => { e.y += e.speed * dt; });
+  for (let i = enemies.length - 1; i >= 0; i--) {
+    const e = enemies[i];
+    if (e.y > H + 40) { enemies.splice(i, 1); combo = 0; continue; }
+    if (rectHit(e, ship)) { enemies.splice(i, 1); hitPlayer(); if (over) return; continue; }
+    for (let j = bullets.length - 1; j >= 0; j--) {
+      if (rectHit(e, bullets[j])) {
+        bullets.splice(j, 1);
+        e.hp--;
+        if (e.hp <= 0) { killEnemy(i); break; }
+      }
+    }
+  }
+
+  drops.forEach(d => { d.y += 110 * dt; });
+  for (let i = drops.length - 1; i >= 0; i--) {
+    if (rectHit(drops[i], ship)) {
+      if (drops[i].type === 'repair') { lives++; burst(ship.x, ship.y, '#4ade80'); }
+      else { score += 200; burst(ship.x, ship.y, '#ffd166'); }
+      drops.splice(i, 1);
+      updateHUD();
+    } else if (drops[i].y > H + 20) drops.splice(i, 1);
+  }
+
+  particles.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; });
+  particles = particles.filter(p => p.life > 0);
+  stars.forEach(s => { s.y += s.s * dt; if (s.y > H) { s.y = 0; s.x = Math.random() * W; } });
+  if (shake > 0) shake -= dt * 30;
+
+  if (enemies.length === 0) {
+    score += wave * 100;
+    wave++;
+    spawnWave();
+    updateHUD();
+  }
+}
+
+function draw() {
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake);
+  ctx.fillStyle = '#03060f';
+  ctx.fillRect(-10, -10, W + 20, H + 20);
+
+  stars.forEach(s => {
+    ctx.fillStyle = `rgba(180,210,255,${.35 + s.r * .2})`;
+    ctx.fillRect(s.x, s.y, s.r, s.r);
+  });
+
+  ctx.fillStyle = '#38e8ff';
+  ctx.shadowColor = '#38e8ff';
+  ctx.shadowBlur = 12;
+  ctx.beginPath();
+  ctx.moveTo(ship.x, ship.y - 22);
+  ctx.lineTo(ship.x + 19, ship.y + 18);
+  ctx.lineTo(ship.x, ship.y + 10);
+  ctx.lineTo(ship.x - 19, ship.y + 18);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = '#ffd166';
+  bullets.forEach(b => ctx.fillRect(b.x - 3, b.y - 8, 6, 16));
+
+  enemies.forEach(e => {
+    const color = e.type === 'boss' ? '#ff4fa3' : e.type === 'raider' ? '#ff9f43' : '#a66bff';
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(e.x, e.y + e.h / 2);
+    ctx.lineTo(e.x - e.w / 2, e.y - e.h / 2);
+    ctx.lineTo(e.x + e.w / 2, e.y - e.h / 2);
+    ctx.closePath();
+    ctx.fill();
+    if (e.maxHp > 1) {
+      ctx.fillStyle = '#222';
+      ctx.fillRect(e.x - 18, e.y - 30, 36, 4);
+      ctx.fillStyle = '#4ade80';
+      ctx.fillRect(e.x - 18, e.y - 30, 36 * (e.hp / e.maxHp), 4);
+    }
+  });
+
+  drops.forEach(d => {
+    ctx.fillStyle = d.type === 'repair' ? '#4ade80' : '#ffd166';
+    ctx.fillRect(d.x - 8, d.y - 8, 16, 16);
+  });
+
+  particles.forEach(p => {
+    ctx.globalAlpha = Math.max(0, p.life * 1.8);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, 3, 3);
+  });
+  ctx.globalAlpha = 1;
+
+  if (paused) {
+    ctx.fillStyle = 'rgba(0,0,0,.6)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 40px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText('PAUSE', W / 2, H / 2);
+  }
+  ctx.restore();
+}
+
+function loop(ts) {
+  if (!running) return;
+  const dt = Math.min((ts - lastTime) / 1000, .05);
+  lastTime = ts;
+  if (!paused && !over) update(dt);
+  draw();
+  requestAnimationFrame(loop);
+}
+
+/* ===================== START / FINISH ===================== */
+$('btnStart').addEventListener('click', async () => {
+  if (!player) return showPanel('authPanel');
+  setMsg($('lobbyMsg'), 'Menyiapkan sesi...');
+  try {
+    session = await api('/api/games/start', {
+      method: 'POST',
+      body: JSON.stringify({ player_id: player.id, equip: [...equip] })
+    });
+    equip.clear();
+    running = true;
+    showPanel('gamePanel');
+    resetGame();
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+  } catch (e) {
+    setMsg($('lobbyMsg'), e.message, true);
+  }
+});
+
+async function finishRun() {
+  over = true;
+  const duration = Math.max(1, Math.round((performance.now() - startedAt) / 1000));
+  try {
+    const res = await api('/api/games/' + session.id + '/finish', {
+      method: 'POST',
+      body: JSON.stringify({
+        score, wave, enemies_killed: kills,
+        max_combo: maxCombo, duration_seconds: duration
+      })
+    });
+    player = await api('/api/players/' + player.id);
+    $('playerInfo').textContent = `${player.display_name} · ${player.coins} koin`;
+    showResult(res);
+  } catch (e) {
+    showResult({ valid: false, reason: e.message, score, rank: null, coins_earned: 0 });
+  }
+}
+
+function showResult(res) {
+  $('resultIcon').textContent = res.valid ? '🏆' : '⚠️';
+  $('resultTitle').textContent = res.valid ? 'Run Selesai!' : 'Skor Ditolak';
+  $('resultScore').textContent = res.score.toLocaleString();
+  $('resultText').innerHTML =
+    `Wave <b>${wave}</b> · Kill <b>${kills}</b> · Combo maks <b>${maxCombo}</b><br>` +
+    (res.valid
+      ? `Peringkat #${res.rank} · +${res.coins_earned} koin`
+      : res.reason);
+  $('overlay').classList.remove('hidden');
+}
+
+$('btnAgain').addEventListener('click', async () => {
+  $('overlay').classList.add('hidden');
+  await refreshInventory();
+  showPanel('lobbyPanel');
+});
+
+$('btnMenu').addEventListener('click', () => {
+  running = false;
+  $('overlay').classList.add('hidden');
+  showPanel('lobbyPanel');
+});
+
+/* ===================== INPUT ===================== */
+document.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'a' || e.key === 'ArrowLeft') keys.left = true;
+  if (k === 'd' || e.key === 'ArrowRight') keys.right = true;
+  if (e.code === 'Space') { keys.fire = true; e.preventDefault(); }
+  if (k === 'p' && running && !over) {
+    paused = !paused;
+    $('hudStatus').textContent = paused ? 'PAUSE' : (session.rapid_active ? 'LIVE · RAPID' : 'LIVE');
+  }
+});
+document.addEventListener('keyup', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'a' || e.key === 'ArrowLeft') keys.left = false;
+  if (k === 'd' || e.key === 'ArrowRight') keys.right = false;
+  if (e.code === 'Space') keys.fire = false;
+});
+
+/* ===================== INIT ===================== */
+(async function init() {
+  initStars();
+  draw();
+  await checkConnection();
+  await restorePlayer();
+  if (!player) showPanel('authPanel');
+})();
+</script>
+</body>
+</html>
