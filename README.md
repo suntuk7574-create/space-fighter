@@ -5,12 +5,14 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 > **Demo publik (sementara):** https://internal-patricia-nancy-designs.trycloudflare.com
 >
 > Link tunnel gratis bisa berubah/expire. Untuk menyalakan ulang: `.\scripts\start-demo.ps1`
+>
+> **Butuh internet?** Link publik di atas butuh internet. Kalau backend + PostgreSQL jalan di laptop sendiri, game bisa dibuka lewat `http://127.0.0.1:8000` tanpa internet (mode lokal). Akun/skor tetap tersimpan di DB lokal.
 
 ## ✨ Fitur
 
 - Arena luar angkasa 3D: cincin orbit, nebula, planet bercincin, sabuk asteroid, bintang, dan debu kosmik (bukan grid datar).
 - 6 spaceship futuristik dengan animasi 3D & **glow neon warna khas tiap pesawat**: **Vanguard** (biru), **Raptor** (oranye), **Phantom** (ungu), plus premium **SPECTRE** (mini & paling lincah, mint), **NOVA** (sayap sweep + inti emas), dan **TITAN** (kapaltempur besar, 4 mesin, hijau). Bilah sayap tajam, lampu navigasi berkedip, api mesin, aura energi, dan jejak plasma makin terang saat pesawat bergerak. Premium dibeli di Shop dengan koin.
-- 5 senjata dengan perilaku berbeda: **Pulse Cannon**, **Twin Blaster**, **Ion Lance** (tembus 3 musuh), **Nova Scatter** (5 peluru), **Plasma Core** (damage 2).
+- 5 senjata dengan perilaku berbeda, semuanya kini berupa **bola api** (inti putih + ekor oranye + halo): **Pulse Cannon**, **Twin Blaster**, **Ion Lance** (tembus 3 musuh), **Nova Scatter** (5 bola api), **Plasma Core** (damage 2). Pesawat premium membuat bola api lebih besar dan lebih sakit: **SPECTRE ×1.4**, **NOVA ×1.7**, **TITAN ×2**.
 - Musuh kumbang alien: **Scarab**, **Stag Beetle**, dan **Rhino Beetle** (boss tiap wave ke-5).
 - **Seed harian** deterministik (SHA-256 + LCG) sehingga pola spawn sama untuk semua pemain.
 - Akun, koin, inventory, item, riwayat sesi, dan **leaderboard global** tersimpan di database relasional.

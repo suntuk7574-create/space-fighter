@@ -52,19 +52,19 @@ SEED_ITEMS = [
     {
         "code": "ship_spectre",
         "name": "SPECTRE (Pesawat)",
-        "description": "Mata-mata kecil & sangat lincah, ukuran minimalis.",
+        "description": "Mata-mata kecil & sangat lincah. Bola api damage x1.4.",
         "price": 600,
     },
     {
         "code": "ship_nova",
         "name": "NOVA (Pesawat)",
-        "description": "Interceptor sayap lebar dengan inti bercahaya.",
+        "description": "Interceptor sayap lebar bercahaya. Bola api damage x1.7.",
         "price": 1000,
     },
     {
         "code": "ship_titan",
         "name": "TITAN (Pesawat)",
-        "description": "Kapaltempur besar, lambat tapi gagah.",
+        "description": "Kapaltempur besar 4 mesin. Bola api damage x2.",
         "price": 1600,
     },
 ]
@@ -121,8 +121,14 @@ def on_startup():
     db = SessionLocal()
     try:
         for data in SEED_ITEMS:
-            if not db.query(models.Item).filter_by(code=data["code"]).first():
+            item = db.query(models.Item).filter_by(code=data["code"]).first()
+            if not item:
                 db.add(models.Item(**data))
+            else:
+                # Deskripsi/harga bisa berubah saat fitur baru ditambahkan.
+                item.name = data["name"]
+                item.description = data["description"]
+                item.price = data["price"]
 
         # Pastikan hanya ada satu akun admin.
         others = (
