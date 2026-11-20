@@ -17,6 +17,8 @@
 
 **Fitur pembeda:** **Seed harian**. Backend membuat seed dari tanggal memakai SHA-256; frontend memakai LCG dengan seed yang sama sehingga pola spawn musuh reproducible untuk semua pemain pada hari itu.
 
+**Tampilan:** game dirender dalam **3D menggunakan Three.js** (planet bercincin, asteroid belt, starfield, grid luar angkasa, efek partikel dan glow), dilengkapi **radar/sektor mini-map** di sudut kanan atas. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
+
 ---
 
 ## 2. Algoritma & Logika Pemrograman
@@ -180,10 +182,10 @@ Respons:
 
 ## 7. Penggunaan AI Coding Agent & Skills
 
-- **AI Agent:** OpenCode — dipakai untuk merancang arsitektur, membuat model SQLAlchemy, endpoint FastAPI, logika game, dan frontend canvas.
+- **AI Agent:** OpenCode — dipakai untuk merancang arsitektur, membuat model SQLAlchemy, endpoint FastAPI, logika game, dan frontend 3D (Three.js).
 - **Tools/Skill:** Browser skill — dipakai untuk memprevieu dan menguji game HTML sebelumnya (Fruit Door) serta memeriksa error konsol.
 - **Pendekatan instruksi:** Instruksi ringkas dan inkremental (gaya *Caveman*) dipakai saat iterasi fitur.
-- **REA:** Tidak dipakai. Seluruh aset dan mekanisme dibuat sendiri (emoji + canvas shapes), sehingga tidak ada konten berhak cipta yang disalin.
+- **REA:** Tidak dipakai. Seluruh aset dan mekanisme dibuat sendiri (emoji + geometri Three.js), sehingga tidak ada konten berhak cipta yang disalin. Pustaka Three.js (MIT) disimpan lokal di `frontend/vendor/three.min.js`.
 - **UI/UX:** Desain panel gelap, HUD jelas, kontrol keyboard ditampilkan di layar.
 
 Dokumentasi ini dapat dilengkapi tim dengan prompt/conversation log sesuai format dosen.
@@ -196,7 +198,7 @@ Dokumentasi ini dapat dilengkapi tim dengan prompt/conversation log sesuai forma
 |---|---|
 | Backend 1 | Model & migrasi SQLAlchemy, koneksi DB |
 | Backend 2 | Endpoint FastAPI, validasi skor, leaderboard |
-| Frontend 1 | Canvas game loop, kontrol, collision |
+| Frontend 1 | Scene 3D Three.js, radar mini-map, game loop, kontrol, collision |
 | Frontend 2 | Integrasi REST, auth panel, shop, leaderboard UI |
 | Dokumentasi | Diagram ER, dokumentasi API, catatan AI agent |
 | Testing | Unit test `game_logic.py`, uji manual end-to-end |
@@ -210,7 +212,7 @@ Dokumentasi ini dapat dilengkapi tim dengan prompt/conversation log sesuai forma
 - [x] Target DB relasional PostgreSQL (opsi MySQL/MariaDB tersedia)
 - [x] REST API frontend ↔ backend
 - [x] Penyimpanan data: akun, progres, skor, inventory, riwayat
-- [x] Frontend web terintegrasi (tanpa Node.js)
+- [x] Frontend web 3D terintegrasi (tanpa Node.js untuk menjalankan proyek)
 - [x] AI Coding Agent (OpenCode) + tools
 - [x] Algoritma & logika jelas dan dapat di-test
 - [x] Identitas visual & gameplay dapat dimainkan
