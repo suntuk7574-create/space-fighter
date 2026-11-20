@@ -112,6 +112,20 @@
     margin: 0; font-size: 13px; color: var(--text);
   }
   .equip input { width: auto; }
+  .loadout { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 8px 0 14px; }
+  .loadout-card {
+    text-align: left; background: rgba(5,10,28,.85); border: 1px solid var(--line);
+    border-radius: 12px; padding: 11px 13px; color: var(--text);
+    box-shadow: none; display: flex; flex-direction: column; gap: 4px;
+  }
+  .loadout-card b { font-size: 13px; color: var(--accent, var(--cyan)); letter-spacing: .8px; }
+  .loadout-card span { font-size: 11px; color: var(--muted); line-height: 1.35; }
+  .loadout-card.active {
+    border-color: var(--accent, var(--cyan));
+    box-shadow: 0 0 22px color-mix(in srgb, var(--accent, var(--cyan)) 35%, transparent);
+    background: rgba(20,36,80,.9);
+  }
+  .loadout-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin: 6px 0 4px; text-transform: uppercase; }
 
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
@@ -170,7 +184,12 @@
 
   <section class="panel hidden" id="lobbyPanel">
     <h2>Hangar · Persiapan Sesi</h2>
-    <p class="tagline">Pilih item yang sudah dibeli di Shop, lalu luncurkan serangan.</p>
+    <p class="tagline">Pilih model pesawat & senjata, lalu luncurkan serangan. Semua loadout langsung bisa dipakai.</p>
+    <div class="loadout-title">Model Pesawat</div>
+    <div class="loadout" id="shipBox"></div>
+    <div class="loadout-title">Senjata</div>
+    <div class="loadout" id="weaponBox"></div>
+    <div class="loadout-title">Item Pendukung (dari Shop)</div>
     <div class="equip" id="equipBox"></div>
     <div class="row"><button id="btnStart">🚀 Mulai Serangan</button></div>
     <div class="msg" id="lobbyMsg"></div>
@@ -182,6 +201,7 @@
       <div class="box">Sektor <b id="hudWave">1</b></div>
       <div class="box">Nyawa <b id="hudLives">3</b></div>
       <div class="box">Combo <b id="hudCombo">0</b></div>
+      <div class="box">Senjata <b id="hudWeapon">PULSE</b></div>
       <div class="box">Seed <b id="hudSeed">-</b></div>
       <div class="box" id="hudStatus">LIVE</div>
     </div>
@@ -381,6 +401,56 @@ let keys = { left: false, right: false, fire: false };
 let ship = { x: W / 2, y: H - 60, w: 38, h: 40 };
 let cooldown = 0, lastTime = 0, startedAt = 0, shake = 0;
 
+/* ---- LOADOUT: MODEL PESAWAT & SENJATA ---- */
+const SHIP_KEY = 'sf_ship', WEAPON_KEY = 'sf_weapon';
+const SHIP_MODELS = {
+  vanguard: { name: 'VANGUARD', icon: '🚀', accent: '#38e8ff', color: 0x38e8ff, desc: 'Fighter seimbang, manuver cepat' },
+  raptor:   { name: 'RAPTOR',   icon: '✈️', accent: '#ff9f43', color: 0xff9f43, desc: 'Serangan agresif, sayap tajam' },
+  phantom:  { name: 'PHANTOM',  icon: '🛸', accent: '#c084fc', color: 0xc084fc, desc: 'Siluman lebar, glow ungu' }
+};
+const WEAPONS = {
+  pulse:   { name: 'PULSE CANNON', icon: '🔵', color: '#38e8ff', hex: 0x38e8ff, desc: 'Laser cepat seimbang', cd: .20, speed: 620, dmg: 1, shots: 1, spread: 0, pierce: 0, size: .32, len: 1 },
+  twin:    { name: 'TWIN BLASTER', icon: '⚡', color: '#ffd166', hex: 0xffd166, desc: '2 tembakan sejajar', cd: .18, speed: 680, dmg: 1, shots: 2, spread: 0, pierce: 0, size: .28, len: 1 },
+  lance:   { name: 'ION LANCE',    icon: '💜', color: '#ff4fa3', hex: 0xff4fa3, desc: 'Tembus hingga 3 alien', cd: .34, speed: 900, dmg: 1, shots: 1, spread: 0, pierce: 3, size: .22, len: 3.4 },
+  scatter: { name: 'NOVA SCATTER', icon: '🌟', color: '#ff9f43', hex: 0xff9f43, desc: '5 peluru menyebar', cd: .42, speed: 520, dmg: 1, shots: 5, spread: .42, pierce: 0, size: .26, len: .9 },
+  plasma:  { name: 'PLASMA CORE',  icon: '🟢', color: '#4ade80', hex: 0x4ade80, desc: 'Orb besar, damage 2', cd: .40, speed: 430, dmg: 2, shots: 1, spread: 0, pierce: 0, size: .78, len: 1.4 }
+};
+let selectedShip = SHIP_MODELS[localStorage.getItem(SHIP_KEY)] ? localStorage.getItem(SHIP_KEY) : 'vanguard';
+let selectedWeapon = WEAPONS[localStorage.getItem(WEAPON_KEY)] ? localStorage.getItem(WEAPON_KEY) : 'pulse';
+
+function renderLoadout() {
+  const shipBox = $('shipBox'), weaponBox = $('weaponBox');
+  shipBox.innerHTML = '';
+  Object.entries(SHIP_MODELS).forEach(([id, m]) => {
+    const b = document.createElement('button');
+    b.className = 'loadout-card' + (id === selectedShip ? ' active' : '');
+    b.style.setProperty('--accent', m.accent);
+    b.innerHTML = `<b>${m.icon} ${m.name}</b><span>${m.desc}</span>`;
+    b.addEventListener('click', () => {
+      selectedShip = id;
+      localStorage.setItem(SHIP_KEY, id);
+      renderLoadout();
+      setShipModel(id);
+    });
+    shipBox.appendChild(b);
+  });
+  weaponBox.innerHTML = '';
+  Object.entries(WEAPONS).forEach(([id, w]) => {
+    const b = document.createElement('button');
+    b.className = 'loadout-card' + (id === selectedWeapon ? ' active' : '');
+    b.style.setProperty('--accent', w.color);
+    b.innerHTML = `<b>${w.icon} ${w.name}</b><span>${w.desc}</span>`;
+    b.addEventListener('click', () => {
+      selectedWeapon = id;
+      localStorage.setItem(WEAPON_KEY, id);
+      renderLoadout();
+      $('hudWeapon').textContent = w.name.split(' ')[0];
+    });
+    weaponBox.appendChild(b);
+  });
+  $('hudWeapon').textContent = WEAPONS[selectedWeapon].name.split(' ')[0];
+}
+
 class LCG {
   constructor(seed) { this.state = seed % 2147483648; }
   random() {
@@ -449,6 +519,26 @@ function burst(x, y, color, n = 16) {
 function rectHit(a, b) {
   return Math.abs(a.x - b.x) < (a.w + b.w) / 2 && Math.abs(a.y - b.y) < (a.h + b.h) / 2;
 }
+function fireWeapon() {
+  const w = WEAPONS[selectedWeapon] || WEAPONS.pulse;
+  for (let s = 0; s < w.shots; s++) {
+    const t = w.shots === 1 ? 0 : (s / (w.shots - 1) - .5);
+    const b = {
+      x: ship.x + (w.shots === 2 ? (s ? 9 : -9) : t * 12),
+      y: ship.y - 24,
+      vx: t * w.spread * 560,
+      speed: w.speed, dmg: w.dmg, pierce: w.pierce, hit: new Set(),
+      w: w.size * 20 + 6, h: w.len * 20 + 10, mesh: null
+    };
+    b.mesh = new THREE.Mesh(w.geo, w.mat);
+    b.mesh.scale.z = w.len;
+    b.mesh.rotation.z = -Math.atan2(b.vx, w.speed) * .35;
+    dynamic.add(b.mesh);
+    bullets.push(b);
+  }
+  burst(ship.x, ship.y - 26, w.color, 3);
+  cooldown = w.cd * (session.rapid_active ? .6 : 1);
+}
 function killEnemy(index) {
   const e = enemies[index];
   combo++;
@@ -482,16 +572,11 @@ function update(dt) {
   ship.x = Math.max(24, Math.min(W - 24, ship.x));
 
   cooldown -= dt;
-  if (keys.fire && cooldown <= 0) {
-    const b = { x: ship.x, y: ship.y - 24, w: 8, h: 16, mesh: null };
-    b.mesh = new THREE.Mesh(GEO.bullet, MAT.bullet);
-    dynamic.add(b.mesh);
-    bullets.push(b);
-    cooldown = session.rapid_active ? .12 : .22;
-  }
-  bullets.forEach(b => { b.y -= 620 * dt; });
+  if (keys.fire && cooldown <= 0) fireWeapon();
+  bullets.forEach(b => { b.y -= b.speed * dt; b.x += b.vx * dt; });
   for (let i = bullets.length - 1; i >= 0; i--) {
-    if (bullets[i].y < -20) { dynamic.remove(bullets[i].mesh); bullets.splice(i, 1); }
+    const b = bullets[i];
+    if (b.y < -20 || b.x < -40 || b.x > W + 40) { dynamic.remove(b.mesh); bullets.splice(i, 1); }
   }
 
   enemies.forEach(e => { e.y += e.speed * dt; });
@@ -504,13 +589,15 @@ function update(dt) {
       continue;
     }
     for (let j = bullets.length - 1; j >= 0; j--) {
-      if (rectHit(e, bullets[j])) {
-        dynamic.remove(bullets[j].mesh);
-        bullets.splice(j, 1);
-        e.hp--;
-        if (e.mesh && e.mesh.userData.bar) e.mesh.userData.bar.scale.x = Math.max(0, e.hp / e.maxHp);
-        if (e.hp <= 0) { killEnemy(i); break; }
-      }
+      const b = bullets[j];
+      if (b.hit.has(e) || !rectHit(e, b)) continue;
+      b.hit.add(e);
+      e.hp -= b.dmg;
+      burst(b.x, e.y, WEAPONS[selectedWeapon].color, 5);
+      if (e.mesh && e.mesh.userData.bar) e.mesh.userData.bar.scale.x = Math.max(0, e.hp / e.maxHp);
+      if (b.pierce > 0) b.pierce--;
+      else { dynamic.remove(b.mesh); bullets.splice(j, 1); }
+      if (e.hp <= 0) { killEnemy(i); break; }
     }
   }
 
@@ -655,27 +742,107 @@ const MAT = {
   boss: new THREE.MeshStandardMaterial({ color: 0xff4fa3, emissive: 0x9b1258, emissiveIntensity: .9, flatShading: true, metalness: .6 })
 };
 
+/* Material & geometri untuk tiap senjata */
+Object.values(WEAPONS).forEach(w => {
+  w.geo = new THREE.SphereGeometry(w.size, 10, 8);
+  w.mat = new THREE.MeshBasicMaterial({ color: w.hex });
+});
+
+function addEngines(group, xs, radius, color) {
+  let first = null;
+  xs.forEach(x => {
+    const e = new THREE.Mesh(
+      new THREE.SphereGeometry(radius, 14, 10),
+      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .9, blending: THREE.AdditiveBlending })
+    );
+    e.position.set(x, -.05, 1.55);
+    e.scale.z = .55;
+    group.add(e);
+    if (!first) first = e;
+  });
+  return first;
+}
+function buildShipModel(id) {
+  const g = new THREE.Group();
+  const info = SHIP_MODELS[id] || SHIP_MODELS.vanguard;
+  const hull = new THREE.MeshStandardMaterial({
+    color: 0x0d2b52, metalness: .85, roughness: .22,
+    emissive: info.color, emissiveIntensity: .35
+  });
+  const trim = new THREE.MeshStandardMaterial({
+    color: info.color, metalness: .6, roughness: .3,
+    emissive: info.color, emissiveIntensity: .55
+  });
+  const glass = new THREE.MeshStandardMaterial({
+    color: 0xbff6ff, metalness: .2, roughness: .1,
+    emissive: 0x4fd8ff, emissiveIntensity: .6
+  });
+  let engine;
+
+  if (id === 'raptor') {
+    const body = new THREE.Mesh(new THREE.ConeGeometry(.72, 4.2, 3), hull);
+    body.rotation.x = -Math.PI / 2;
+    g.add(body);
+    [-1, 1].forEach(side => {
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(2.6, .16, 1.05), trim);
+      wing.position.set(side * 1.5, -.05, .7);
+      wing.rotation.z = side * .22;
+      wing.rotation.y = side * .18;
+      g.add(wing);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(.22, 1.4, 4), trim);
+      tip.rotation.x = -Math.PI / 2;
+      tip.position.set(side * 2.6, 0, .55);
+      g.add(tip);
+    });
+    const canopy = new THREE.Mesh(new THREE.SphereGeometry(.42, 12, 8), glass);
+    canopy.scale.set(.8, .55, 1.5);
+    canopy.position.set(0, .35, -.35);
+    g.add(canopy);
+    engine = addEngines(g, [-1.05, 1.05], .5, info.color);
+  } else if (id === 'phantom') {
+    const body = new THREE.Mesh(new THREE.OctahedronGeometry(1.15, 0), hull);
+    body.scale.set(1, .5, 1.7);
+    g.add(body);
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(5.4, .14, 1.9), trim);
+    wing.position.set(0, -.1, .55);
+    wing.rotation.x = .12;
+    g.add(wing);
+    [-1, 1].forEach(side => {
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(.45, 1.8, 3), hull);
+      fin.position.set(side * 2.4, .25, .35);
+      fin.rotation.z = side * -.4;
+      g.add(fin);
+    });
+    const canopy = new THREE.Mesh(new THREE.SphereGeometry(.55, 12, 8), glass);
+    canopy.scale.set(1, .45, 1.3);
+    canopy.position.set(0, .4, -.2);
+    g.add(canopy);
+    engine = addEngines(g, [-1.7, 1.7], .6, info.color);
+  } else {
+    const body = new THREE.Mesh(new THREE.ConeGeometry(.95, 3.4, 4), hull);
+    body.rotation.x = -Math.PI / 2;
+    g.add(body);
+    const wing = new THREE.Mesh(new THREE.BoxGeometry(3.6, .18, 1.15), trim);
+    wing.position.z = .85;
+    g.add(wing);
+    const canopy = new THREE.Mesh(new THREE.SphereGeometry(.45, 12, 8), glass);
+    canopy.scale.set(.9, .55, 1.4);
+    canopy.position.set(0, .4, -.25);
+    g.add(canopy);
+    engine = addEngines(g, [-1.2, 1.2], .55, info.color);
+  }
+  return { group: g, engine };
+}
+let engineGlow = null;
 const playerShip = new THREE.Group();
-const shipBody = new THREE.Mesh(
-  new THREE.ConeGeometry(.95, 3.4, 4),
-  new THREE.MeshStandardMaterial({ color: 0x0d3f66, emissive: 0x38e8ff, emissiveIntensity: .65, metalness: .8, roughness: .2 })
-);
-shipBody.rotation.x = -Math.PI / 2;
-playerShip.add(shipBody);
-const shipWing = new THREE.Mesh(
-  new THREE.BoxGeometry(3.6, .18, 1.15),
-  new THREE.MeshStandardMaterial({ color: 0x123f70, emissive: 0x1b8fd0, emissiveIntensity: .5, metalness: .7 })
-);
-shipWing.position.z = .85;
-playerShip.add(shipWing);
-const engineGlow = new THREE.Mesh(
-  new THREE.SphereGeometry(.55, 14, 10),
-  new THREE.MeshBasicMaterial({ color: 0x7ff4ff, transparent: true, opacity: .9, blending: THREE.AdditiveBlending })
-);
-engineGlow.position.z = 1.55;
-engineGlow.scale.z = .55;
-playerShip.add(engineGlow);
 scene.add(playerShip);
+function setShipModel(id) {
+  while (playerShip.children.length) playerShip.remove(playerShip.children[0]);
+  const built = buildShipModel(id);
+  playerShip.add(built.group);
+  engineGlow = built.engine;
+}
+setShipModel(selectedShip);
 
 function makeEnemyMesh(type) {
   const g = new THREE.Group();
@@ -897,6 +1064,7 @@ sceneCanvas.addEventListener('pointercancel', releasePointer);
 
 /* ===================== INIT ===================== */
 (async function init() {
+  renderLoadout();
   syncMeshes(0);
   drawMinimap();
   await checkConnection();

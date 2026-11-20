@@ -17,7 +17,7 @@
 
 **Fitur pembeda:** **Seed harian**. Backend membuat seed dari tanggal memakai SHA-256; frontend memakai LCG dengan seed yang sama sehingga pola spawn musuh reproducible untuk semua pemain pada hari itu.
 
-**Tampilan:** game dirender dalam **3D menggunakan Three.js** (planet bercincin, asteroid belt, starfield, grid luar angkasa, efek partikel dan glow), dilengkapi **radar/sektor mini-map** di sudut kanan atas. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
+**Tampilan:** game dirender dalam **3D menggunakan Three.js** (planet bercincin, asteroid belt, starfield, grid luar angkasa, efek partikel dan glow), dilengkapi **radar/sektor mini-map** di sudut kanan atas. Hangar menyediakan **3 model pesawat** (Vanguard, Raptor, Phantom) dan **5 pilihan senjata** (Pulse Cannon, Twin Blaster, Ion Lance yang menembus musuh, Nova Scatter 5 peluru, dan Plasma Core damage 2). Pilihan loadout disimpan di `localStorage`. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
 
 ---
 
@@ -29,7 +29,8 @@
 | SHA-256 seed generation | `daily_seed()` | Mengubah tanggal menjadi angka seed 31-bit yang stabil. |
 | Difficulty scaling | `difficulty_for_wave()` | Jumlah musuh `3+wave` (max 10), kecepatan `60+12*wave`, HP naik di wave 3 & 6. |
 | Combo scoring | `score_for_kill()` | `poin = base + wave*5 + combo*10`. |
-| Collision detection (AABB sederhana) | `frontend/index.html` | Cek tabrakan peluru–musuh dan musuh–pesawat. |
+| Collision detection (AABB sederhana) | `frontend/index.html` | Cek tabrakan peluru–musuh dan musuh–pesawat; mendukung damage dan peluru penembus (`pierce`). |
+| Weapon spread & pierce | `fireWeapon()` | Menyebarkan 5 peluru (Nova Scatter), menembak 2 sejajar (Twin), atau menembus 3 musuh (Ion Lance). |
 | Validasi skor | `validate_run()` | Membatasi skor tidak wajar berdasarkan kill, wave, combo, dan durasi. |
 | Fisher-Yates (cadangan di proyek Fruit Door) | `fruitdoor/backend/app/game_logic.py` | Referensi pengacakan unbiased. |
 
@@ -198,7 +199,7 @@ Dokumentasi ini dapat dilengkapi tim dengan prompt/conversation log sesuai forma
 |---|---|
 | Backend 1 | Model & migrasi SQLAlchemy, koneksi DB |
 | Backend 2 | Endpoint FastAPI, validasi skor, leaderboard |
-| Frontend 1 | Scene 3D Three.js, radar mini-map, game loop, kontrol, collision |
+| Frontend 1 | Scene 3D Three.js, model pesawat & senjata, radar mini-map, game loop, kontrol, collision |
 | Frontend 2 | Integrasi REST, auth panel, shop, leaderboard UI |
 | Dokumentasi | Diagram ER, dokumentasi API, catatan AI agent |
 | Testing | Unit test `game_logic.py`, uji manual end-to-end |
