@@ -404,9 +404,9 @@ let cooldown = 0, lastTime = 0, startedAt = 0, shake = 0;
 /* ---- LOADOUT: MODEL PESAWAT & SENJATA ---- */
 const SHIP_KEY = 'sf_ship', WEAPON_KEY = 'sf_weapon';
 const SHIP_MODELS = {
-  vanguard: { name: 'VANGUARD', icon: '🚀', accent: '#38e8ff', color: 0x38e8ff, desc: 'Fighter seimbang, manuver cepat' },
-  raptor:   { name: 'RAPTOR',   icon: '✈️', accent: '#ff9f43', color: 0xff9f43, desc: 'Serangan agresif, sayap tajam' },
-  phantom:  { name: 'PHANTOM',  icon: '🛸', accent: '#c084fc', color: 0xc084fc, desc: 'Siluman lebar, glow ungu' }
+  vanguard: { name: 'VANGUARD', icon: '🚀', accent: '#38e8ff', color: 0x38e8ff, desc: 'Fighter ringan · manuver cepat' },
+  raptor:   { name: 'RAPTOR',   icon: '✈️', accent: '#ff9f43', color: 0xff9f43, desc: 'Interceptor · sayap tajam & agresif' },
+  phantom:  { name: 'PHANTOM',  icon: '🛸', accent: '#c084fc', color: 0xc084fc, desc: 'Stealth chooser · glow ungu' }
 };
 const WEAPONS = {
   pulse:   { name: 'PULSE CANNON', icon: '🔵', color: '#38e8ff', hex: 0x38e8ff, desc: 'Laser cepat seimbang', cd: .20, speed: 620, dmg: 1, shots: 1, spread: 0, pierce: 0, size: .32, len: 1 },
@@ -461,9 +461,9 @@ class LCG {
 }
 
 function sectorName(w) {
-  if (w % 5 === 0) return 'BOSS GATE';
-  if (w % 2 === 0) return 'RAIDER BELT';
-  return 'SCOUT NEBULA';
+  if (w % 5 === 0) return 'RHINO HIVE GATE';
+  if (w % 2 === 0) return 'STAG SWARM BELT';
+  return 'SCARAB NEBULA';
 }
 function spawnWave() {
   const rng = new LCG(session.seed + wave * 7919);
@@ -664,67 +664,141 @@ function glowTexture(inner, outer) {
   g.fillRect(0, 0, 128, 128);
   return new THREE.CanvasTexture(c);
 }
-const nebulaA = new THREE.Sprite(new THREE.SpriteMaterial({
-  map: glowTexture('rgba(60,180,255,.55)', 'rgba(30,60,180,.22)'),
-  blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: .85
-}));
-nebulaA.scale.set(120, 70, 1);
-nebulaA.position.set(26, 12, -105);
-scene.add(nebulaA);
-const nebulaB = new THREE.Sprite(new THREE.SpriteMaterial({
-  map: glowTexture('rgba(255,80,170,.45)', 'rgba(120,20,120,.18)'),
-  blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: .8
-}));
-nebulaB.scale.set(95, 60, 1);
-nebulaB.position.set(-34, 6, -95);
-scene.add(nebulaB);
+/* Awan nebula bertingkat untuk kesan luar angkasa, bukan bidang datar */
+[
+  { a: 'rgba(60,180,255,.5)',  b: 'rgba(30,60,180,.2)',  s: [140, 80], p: [28, 14, -115], o: .85 },
+  { a: 'rgba(255,80,170,.45)', b: 'rgba(120,20,120,.18)', s: [110, 70], p: [-38, 8, -105], o: .8 },
+  { a: 'rgba(120,255,200,.3)', b: 'rgba(20,120,110,.12)', s: [90, 55],  p: [0, -12, -125], o: .6 },
+  { a: 'rgba(255,190,80,.28)', b: 'rgba(140,70,10,.1)',   s: [70, 50],  p: [48, -6, -100], o: .6 }
+].forEach(n => {
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture(n.a, n.b), blending: THREE.AdditiveBlending,
+    depthWrite: false, transparent: true, opacity: n.o
+  }));
+  sprite.scale.set(n.s[0], n.s[1], 1);
+  sprite.position.set(n.p[0], n.p[1], n.p[2]);
+  scene.add(sprite);
+});
 
+/* Planet raksasa + satelit + planet jauh */
 const planet = new THREE.Mesh(
-  new THREE.SphereGeometry(13, 36, 24),
+  new THREE.SphereGeometry(14, 36, 24),
   new THREE.MeshStandardMaterial({ color: 0x17356f, emissive: 0x08183c, roughness: .85, metalness: .15 })
 );
-planet.position.set(-30, 8, -85);
+planet.position.set(-34, 10, -92);
 scene.add(planet);
 const planetRing = new THREE.Mesh(
-  new THREE.TorusGeometry(19, .55, 8, 72),
-  new THREE.MeshBasicMaterial({ color: 0x38e8ff, transparent: true, opacity: .38 })
+  new THREE.TorusGeometry(21, .6, 8, 80),
+  new THREE.MeshBasicMaterial({ color: 0x38e8ff, transparent: true, opacity: .4 })
 );
 planetRing.position.copy(planet.position);
 planetRing.rotation.x = Math.PI / 2.35;
 scene.add(planetRing);
+const moon = new THREE.Mesh(
+  new THREE.SphereGeometry(5, 20, 14),
+  new THREE.MeshStandardMaterial({ color: 0x8093b8, roughness: 1, flatShading: true })
+);
+moon.position.set(32, 16, -112);
+scene.add(moon);
+const farPlanet = new THREE.Mesh(
+  new THREE.SphereGeometry(8, 24, 16),
+  new THREE.MeshStandardMaterial({ color: 0x5a2168, emissive: 0x2a0b38, roughness: .9 })
+);
+farPlanet.position.set(46, -6, -122);
+scene.add(farPlanet);
 
-const grid = new THREE.GridHelper(140, 42, 0x1d5a92, 0x0e2648);
-grid.position.y = -4.5;
-scene.add(grid);
+/* Arena pertahanan melingkar menggantikan grid kotak */
+const arena = new THREE.Group();
+arena.position.set(0, -5.2, -6);
+[14, 23, 32].forEach((r, i) => {
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(r, .07 + i * .02, 6, 90),
+    new THREE.MeshBasicMaterial({
+      color: i === 1 ? 0xff4fa3 : 0x38e8ff,
+      transparent: true, opacity: .3 - i * .06
+    })
+  );
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = i * .06;
+  arena.add(ring);
+});
+for (let i = 0; i < 12; i++) {
+  const a = (i / 12) * Math.PI * 2;
+  const tick = new THREE.Mesh(
+    new THREE.BoxGeometry(.1, .05, 2.6),
+    new THREE.MeshBasicMaterial({ color: 0x38e8ff, transparent: true, opacity: .3 })
+  );
+  tick.position.set(Math.cos(a) * 30, 0, Math.sin(a) * 30);
+  tick.rotation.y = a;
+  arena.add(tick);
+}
+const arenaGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: glowTexture('rgba(56,232,255,.16)', 'rgba(30,90,180,.05)'),
+  blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: .7
+}));
+arenaGlow.scale.set(64, 34, 1);
+arenaGlow.position.set(0, -6, -8);
+scene.add(arenaGlow);
+scene.add(arena);
 
-const starCount = 850;
+/* Lintang dengan kedalaman + kedip */
+const starCount = 1100;
 const starPos = new Float32Array(starCount * 3);
 const starSpeed = new Float32Array(starCount);
 for (let i = 0; i < starCount; i++) {
-  starPos[i * 3] = (Math.random() - .5) * 150;
-  starPos[i * 3 + 1] = (Math.random() - .2) * 60;
-  starPos[i * 3 + 2] = -130 + Math.random() * 160;
-  starSpeed[i] = 8 + Math.random() * 26;
+  starPos[i * 3] = (Math.random() - .5) * 180;
+  starPos[i * 3 + 1] = (Math.random() - .25) * 72;
+  starPos[i * 3 + 2] = -140 + Math.random() * 180;
+  starSpeed[i] = 8 + Math.random() * 34;
 }
 const starGeo = new THREE.BufferGeometry();
 starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
 const starField = new THREE.Points(starGeo, new THREE.PointsMaterial({
-  size: .42, color: 0xc4dcff, transparent: true, opacity: .9, depthWrite: false
+  size: .45, color: 0xc4dcff, transparent: true, opacity: .9, depthWrite: false
 }));
 scene.add(starField);
 
+/* Sabuk asteroid + kristal bercahaya melayang */
 const rocks = new THREE.Group();
-for (let i = 0; i < 22; i++) {
+for (let i = 0; i < 34; i++) {
   const r = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(.6 + Math.random() * 1.5, 0),
+    new THREE.IcosahedronGeometry(.5 + Math.random() * 1.8, 0),
     new THREE.MeshStandardMaterial({ color: 0x334466, roughness: 1, flatShading: true })
   );
-  r.position.set((Math.random() - .5) * 70, (Math.random() - .2) * 16, -70 + Math.random() * 80);
+  r.position.set((Math.random() - .5) * 90, (Math.random() - .3) * 28, -85 + Math.random() * 105);
   r.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
   r.userData.spin = (Math.random() - .5) * .4;
   rocks.add(r);
 }
+for (let i = 0; i < 12; i++) {
+  const c = new THREE.Mesh(
+    new THREE.OctahedronGeometry(.35 + Math.random() * .7, 0),
+    new THREE.MeshStandardMaterial({
+      color: i % 2 ? 0x38e8ff : 0xff4fa3,
+      emissive: i % 2 ? 0x1a8fb0 : 0xa02159, emissiveIntensity: .9,
+      roughness: .3, flatShading: true
+    })
+  );
+  c.position.set((Math.random() - .5) * 80, (Math.random() - .2) * 24, -75 + Math.random() * 90);
+  c.userData.spin = (Math.random() - .5) * 1.2;
+  rocks.add(c);
+}
 scene.add(rocks);
+
+/* Debu kosmik yang melayang naik */
+const dustCount = 240;
+const dustPos = new Float32Array(dustCount * 3);
+for (let i = 0; i < dustCount; i++) {
+  dustPos[i * 3] = (Math.random() - .5) * 90;
+  dustPos[i * 3 + 1] = (Math.random() - .4) * 32;
+  dustPos[i * 3 + 2] = -80 + Math.random() * 100;
+}
+const dustGeo = new THREE.BufferGeometry();
+dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+scene.add(new THREE.Points(dustGeo, new THREE.PointsMaterial({
+  size: .3, color: 0x9fe8ff, transparent: true, opacity: .5,
+  depthWrite: false, blending: THREE.AdditiveBlending
+})));
 
 const GEO = {
   bullet: new THREE.SphereGeometry(.32, 8, 6),
@@ -762,20 +836,120 @@ function addEngines(group, xs, radius, color) {
   });
   return first;
 }
+
+/* ---- KUMBANG ALIEN: cangkang, elytra, taring, kaki, mata majemuk ---- */
+function buildBeetle(g, p, style, dir, s) {
+  const shell = new THREE.MeshStandardMaterial({
+    color: p.shell, metalness: .75, roughness: .3,
+    emissive: p.plate, emissiveIntensity: .25, flatShading: style !== 'scarab'
+  });
+  const plate = new THREE.MeshStandardMaterial({
+    color: p.plate, metalness: .7, roughness: .26,
+    emissive: p.plate, emissiveIntensity: .6, flatShading: style !== 'scarab'
+  });
+  const eyeMat = new THREE.MeshBasicMaterial({
+    color: p.eye, transparent: true, opacity: .95,
+    blending: THREE.AdditiveBlending
+  });
+
+  /* Perut dan sayap keras (elytra) */
+  const abdomen = new THREE.Mesh(new THREE.SphereGeometry(s, 16, 12), shell);
+  abdomen.scale.set(1, .55, 1.55);
+  abdomen.position.z = -.25 * dir * s;
+  g.add(abdomen);
+  [-1, 1].forEach(side => {
+    const wing = new THREE.Mesh(new THREE.SphereGeometry(s, 14, 10), plate);
+    wing.scale.set(.62, .42, 1.4);
+    wing.position.set(side * .52 * s, .18 * s, -.2 * dir * s);
+    wing.rotation.y = side * (style === 'stag' ? .24 : .12);
+    g.add(wing);
+  });
+  const seam = new THREE.Mesh(new THREE.BoxGeometry(.05 * s, .06 * s, 2.6 * s), eyeMat);
+  seam.position.set(0, .55 * s, -.2 * dir * s);
+  g.add(seam);
+
+  /* Kepala dan mata bercahaya */
+  const head = new THREE.Mesh(new THREE.OctahedronGeometry(.7 * s, 0), shell);
+  head.scale.set(1, .78, 1);
+  head.position.z = 1.15 * dir * s;
+  g.add(head);
+  [-1, 1].forEach(side => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(.26 * s, 12, 8), eyeMat);
+    eye.scale.set(1, .85, .6);
+    eye.position.set(side * .42 * s, .18 * s, 1.52 * dir * s);
+    g.add(eye);
+  });
+
+  /* Taring / tanduk sesuai spesies */
+  if (style === 'stag') {
+    [-1, 1].forEach(side => {
+      const jaw = new THREE.Mesh(new THREE.ConeGeometry(.2 * s, 1.5 * s, 7), plate);
+      jaw.rotation.x = dir * Math.PI / 2;
+      jaw.rotation.z = side * -.18;
+      jaw.position.set(side * .42 * s, -.05 * s, 2.05 * dir * s);
+      g.add(jaw);
+      const tooth = new THREE.Mesh(new THREE.ConeGeometry(.09 * s, .6 * s, 6), plate);
+      tooth.rotation.x = dir * Math.PI / 2;
+      tooth.position.set(side * .22 * s, .12 * s, 2.35 * dir * s);
+      g.add(tooth);
+    });
+  } else if (style === 'rhino') {
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(.26 * s, 2 * s, 8), plate);
+    horn.rotation.x = dir * (Math.PI / 2 - .18);
+    horn.position.set(0, .35 * s, 1.95 * dir * s);
+    g.add(horn);
+    [-1, 1].forEach(side => {
+      const jaw = new THREE.Mesh(new THREE.ConeGeometry(.13 * s, .9 * s, 6), plate);
+      jaw.rotation.x = dir * Math.PI / 2;
+      jaw.position.set(side * .38 * s, -.18 * s, 1.9 * dir * s);
+      g.add(jaw);
+    });
+  } else {
+    [-1, 1].forEach(side => {
+      const jaw = new THREE.Mesh(new THREE.ConeGeometry(.13 * s, .9 * s, 6), plate);
+      jaw.rotation.x = dir * Math.PI / 2;
+      jaw.rotation.z = side * .12;
+      jaw.position.set(side * .32 * s, -.1 * s, 1.85 * dir * s);
+      g.add(jaw);
+    });
+  }
+
+  /* Enam kaki artikulasi */
+  for (let i = 0; i < 3; i++) {
+    [-1, 1].forEach(side => {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(1.5 * s, .13 * s, .13 * s), plate);
+      leg.position.set(side * (.95 + i * .16) * s, -.2 * s, (.55 - i * .75) * dir * s);
+      leg.rotation.z = side * (-.32 - i * .1);
+      leg.rotation.y = side * (.6 - i * .2);
+      g.add(leg);
+    });
+  }
+
+  /* Antena */
+  [-1, 1].forEach(side => {
+    const a = new THREE.Mesh(new THREE.CylinderGeometry(.035 * s, .06 * s, .85 * s, 6), plate);
+    a.position.set(side * .4 * s, .62 * s, 1.55 * dir * s);
+    a.rotation.x = dir * .6;
+    a.rotation.z = side * .3;
+    g.add(a);
+  });
+  return { eyeMat };
+}
+/* Pesawat tetap spaceship futuristik; hanya musuhnya yang berupa kumbang alien */
 function buildShipModel(id) {
   const g = new THREE.Group();
   const info = SHIP_MODELS[id] || SHIP_MODELS.vanguard;
   const hull = new THREE.MeshStandardMaterial({
-    color: 0x0d2b52, metalness: .85, roughness: .22,
-    emissive: info.color, emissiveIntensity: .35
+    color: 0x0d2b52, metalness: .88, roughness: .2,
+    emissive: info.color, emissiveIntensity: .3
   });
   const trim = new THREE.MeshStandardMaterial({
-    color: info.color, metalness: .6, roughness: .3,
-    emissive: info.color, emissiveIntensity: .55
+    color: info.color, metalness: .7, roughness: .26,
+    emissive: info.color, emissiveIntensity: .6
   });
-  const glass = new THREE.MeshStandardMaterial({
-    color: 0xbff6ff, metalness: .2, roughness: .1,
-    emissive: 0x4fd8ff, emissiveIntensity: .6
+  const canopy = new THREE.MeshStandardMaterial({
+    color: 0xbff6ff, metalness: .25, roughness: .08,
+    emissive: 0x4fd8ff, emissiveIntensity: .55
   });
   let engine;
 
@@ -794,10 +968,10 @@ function buildShipModel(id) {
       tip.position.set(side * 2.6, 0, .55);
       g.add(tip);
     });
-    const canopy = new THREE.Mesh(new THREE.SphereGeometry(.42, 12, 8), glass);
-    canopy.scale.set(.8, .55, 1.5);
-    canopy.position.set(0, .35, -.35);
-    g.add(canopy);
+    const glass = new THREE.Mesh(new THREE.SphereGeometry(.42, 12, 8), canopy);
+    glass.scale.set(.8, .55, 1.5);
+    glass.position.set(0, .35, -.35);
+    g.add(glass);
     engine = addEngines(g, [-1.05, 1.05], .5, info.color);
   } else if (id === 'phantom') {
     const body = new THREE.Mesh(new THREE.OctahedronGeometry(1.15, 0), hull);
@@ -813,10 +987,10 @@ function buildShipModel(id) {
       fin.rotation.z = side * -.4;
       g.add(fin);
     });
-    const canopy = new THREE.Mesh(new THREE.SphereGeometry(.55, 12, 8), glass);
-    canopy.scale.set(1, .45, 1.3);
-    canopy.position.set(0, .4, -.2);
-    g.add(canopy);
+    const glass = new THREE.Mesh(new THREE.SphereGeometry(.55, 12, 8), canopy);
+    glass.scale.set(1, .45, 1.3);
+    glass.position.set(0, .4, -.2);
+    g.add(glass);
     engine = addEngines(g, [-1.7, 1.7], .6, info.color);
   } else {
     const body = new THREE.Mesh(new THREE.ConeGeometry(.95, 3.4, 4), hull);
@@ -825,10 +999,10 @@ function buildShipModel(id) {
     const wing = new THREE.Mesh(new THREE.BoxGeometry(3.6, .18, 1.15), trim);
     wing.position.z = .85;
     g.add(wing);
-    const canopy = new THREE.Mesh(new THREE.SphereGeometry(.45, 12, 8), glass);
-    canopy.scale.set(.9, .55, 1.4);
-    canopy.position.set(0, .4, -.25);
-    g.add(canopy);
+    const glass = new THREE.Mesh(new THREE.SphereGeometry(.45, 12, 8), canopy);
+    glass.scale.set(.9, .55, 1.4);
+    glass.position.set(0, .4, -.25);
+    g.add(glass);
     engine = addEngines(g, [-1.2, 1.2], .55, info.color);
   }
   return { group: g, engine };
@@ -844,13 +1018,18 @@ function setShipModel(id) {
 }
 setShipModel(selectedShip);
 
+const BEETLE_ENEMIES = {
+  scout:  { shell: 0x1d123f, plate: 0xa66bff, eye: 0xff7bff, style: 'scarab', s: .85, bar: 2.2 },
+  raider: { shell: 0x4a2108, plate: 0xff9f43, eye: 0xffe066, style: 'stag',   s: 1.05, bar: 2.7 },
+  boss:   { shell: 0x4d0d31, plate: 0xff4fa3, eye: 0xff2d6f, style: 'rhino',  s: 1.5, bar: 3.8 }
+};
 function makeEnemyMesh(type) {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(GEO[type], MAT[type]);
-  g.add(body);
+  const cfg = BEETLE_ENEMIES[type] || BEETLE_ENEMIES.scout;
+  const parts = buildBeetle(g, cfg, cfg.style, 1, cfg.s);
   if (type === 'boss') {
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(3.1, .14, 6, 40),
+      new THREE.TorusGeometry(3.2, .16, 6, 40),
       new THREE.MeshBasicMaterial({ color: 0xffd166 })
     );
     ring.rotation.x = Math.PI / 2;
@@ -860,8 +1039,9 @@ function makeEnemyMesh(type) {
     new THREE.PlaneGeometry(2.6, .2),
     new THREE.MeshBasicMaterial({ color: 0x4ade80, side: THREE.DoubleSide })
   );
-  bar.position.y = type === 'boss' ? 3.4 : 2.2;
+  bar.position.y = cfg.bar;
   g.userData.bar = bar;
+  g.userData.eyeMat = parts.eyeMat;
   g.add(bar);
   return g;
 }
@@ -889,7 +1069,7 @@ const toWorldX = x => (x / W - .5) * 34;
 const toWorldZ = y => -30 + (y / H) * 48;
 
 function syncMeshes(ts) {
-  playerShip.position.set(toWorldX(ship.x), 0, toWorldZ(ship.y));
+  playerShip.position.set(toWorldX(ship.x), Math.sin(ts * .004) * .14, toWorldZ(ship.y));
   playerShip.rotation.z = (keys.left ? .18 : 0) - (keys.right ? .18 : 0);
   engineGlow.scale.setScalar(1 + Math.sin(ts * .012) * .16);
   engineGlow.scale.z *= .55;
@@ -897,8 +1077,9 @@ function syncMeshes(ts) {
   enemies.forEach(e => {
     if (!e.mesh) { e.mesh = makeEnemyMesh(e.type); dynamic.add(e.mesh); }
     e.mesh.position.set(toWorldX(e.x), 0, toWorldZ(e.y));
-    e.mesh.rotation.y += .016 + e.phase * .001;
-    e.mesh.rotation.x = Math.sin(ts * .0015 + e.phase) * .18;
+    e.mesh.rotation.y = Math.sin(ts * .0012 + e.phase) * .3;
+    e.mesh.rotation.x = Math.sin(ts * .0018 + e.phase) * .14;
+    if (e.mesh.userData.eyeMat) e.mesh.userData.eyeMat.opacity = .65 + Math.abs(Math.sin(ts * .004 + e.phase)) * .35;
     if (e.mesh.userData.bar) e.mesh.userData.bar.quaternion.copy(camera.quaternion);
   });
   bullets.forEach(b => b.mesh.position.set(toWorldX(b.x), .3, toWorldZ(b.y)));
@@ -927,9 +1108,18 @@ function syncMeshes(ts) {
     if (starPos[i * 3 + 2] > 32) starPos[i * 3 + 2] = -130;
   }
   starGeo.attributes.position.needsUpdate = true;
+  starField.material.opacity = .78 + Math.sin(ts * .001) * .14;
   rocks.children.forEach(r => { r.rotation.y += r.userData.spin * .016; });
+  for (let i = 0; i < dustCount; i++) {
+    dustPos[i * 3 + 1] += .035;
+    if (dustPos[i * 3 + 1] > 26) dustPos[i * 3 + 1] = -10;
+  }
+  dustGeo.attributes.position.needsUpdate = true;
+  arena.rotation.y += .0004;
   planet.rotation.y += .0008;
   planetRing.rotation.z += .0006;
+  moon.rotation.y -= .0005;
+  farPlanet.rotation.y += .0004;
 
   camera.position.x = Math.sin(ts * .0003) * 1.3 + (Math.random() - .5) * shake * .14;
   camera.position.y = 22 + (Math.random() - .5) * shake * .1;

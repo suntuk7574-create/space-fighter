@@ -11,13 +11,13 @@
 - Musuh turun dari atas dalam **wave**. Setiap wave jumlah, kecepatan, dan HP musuh meningkat.
 - Menembak musuh memberi poin; **combo** bertambah jika menembak terus-menerus dan reset saat terkena musuh / musuh kabur.
 - Ada 3 nyawa. Item **Pelindung** menambah 1 nyawa, **Rapid Fire** mempercepat tembakan.
-- Musuh type `scout`, `raider`, dan `boss` (muncul tiap wave ke-5).
+- Musuh berupa **kumbang alien**: `scout` (Scarab), `raider` (Stag Beetle), dan `boss` (Rhinoceros Beetle, muncul tiap wave ke-5).
 - Power-up acak: `repair` (+1 nyawa) dan `coin` (+200 skor).
 - Skor akhir dikirim ke backend, divalidasi, lalu masuk **leaderboard** dan memberi **koin**.
 
 **Fitur pembeda:** **Seed harian**. Backend membuat seed dari tanggal memakai SHA-256; frontend memakai LCG dengan seed yang sama sehingga pola spawn musuh reproducible untuk semua pemain pada hari itu.
 
-**Tampilan:** game dirender dalam **3D menggunakan Three.js** (planet bercincin, asteroid belt, starfield, grid luar angkasa, efek partikel dan glow), dilengkapi **radar/sektor mini-map** di sudut kanan atas. Hangar menyediakan **3 model pesawat** (Vanguard, Raptor, Phantom) dan **5 pilihan senjata** (Pulse Cannon, Twin Blaster, Ion Lance yang menembus musuh, Nova Scatter 5 peluru, dan Plasma Core damage 2). Pilihan loadout disimpan di `localStorage`. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
+**Tampilan:** game dirender dalam **3D menggunakan Three.js**. Medan perangnya adalah **arena orbit luar angkasa** (cincin pertahanan melingkar, nebula berlapis, planet bercincin + satelit, sabuk asteroid dan kristal bercahaya, bintang berkedip, serta debu kosmik), bukan bidang grid kotak. **Musuh berupa kumbang alien** yang dibuat prosedural: cangkang, sayap keras (elytra), enam kaki, antena, mata majemuk bercahaya, taring dan tanduk. **Pesawat tetap spaceship futuristik** dengan 3 model (Vanguard, Raptor, Phantom) dan 5 pilihan senjata (Pulse Cannon, Twin Blaster, Ion Lance yang menembus musuh, Nova Scatter 5 peluru, dan Plasma Core damage 2). Pilihan loadout disimpan di `localStorage`. Radar/sektor mini-map ada di sudut kanan atas. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
 
 ---
 
@@ -199,7 +199,7 @@ Dokumentasi ini dapat dilengkapi tim dengan prompt/conversation log sesuai forma
 |---|---|
 | Backend 1 | Model & migrasi SQLAlchemy, koneksi DB |
 | Backend 2 | Endpoint FastAPI, validasi skor, leaderboard |
-| Frontend 1 | Scene 3D Three.js, model pesawat & senjata, radar mini-map, game loop, kontrol, collision |
+| Frontend 1 | Scene 3D Three.js, model spaceship & kumbang alien musuh, arena orbit luar angkasa, radar mini-map, game loop, kontrol, collision |
 | Frontend 2 | Integrasi REST, auth panel, shop, leaderboard UI |
 | Dokumentasi | Diagram ER, dokumentasi API, catatan AI agent |
 | Testing | Unit test `game_logic.py`, uji manual end-to-end |
