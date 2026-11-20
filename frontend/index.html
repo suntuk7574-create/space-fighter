@@ -147,6 +147,82 @@
   .modal h2 { margin: 6px 0; }
   .modal p { color: var(--muted); font-size: 13px; line-height: 1.6; }
   .final { font-size: 38px; font-weight: 900; color: var(--gold); margin: 8px 0; text-shadow: 0 0 24px rgba(255,209,102,.4); }
+
+  /* ===== POLISH TAMPILAN ===== */
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: -1; opacity: .7;
+    background-image:
+      radial-gradient(1px 1px at 20px 30px, rgba(180,220,255,.9), transparent),
+      radial-gradient(1px 1px at 90px 160px, rgba(255,180,220,.65), transparent);
+    background-size: 210px 240px, 310px 290px;
+    animation: starDrift 50s linear infinite;
+  }
+  @keyframes starDrift { to { background-position: 210px 240px, -310px 290px; } }
+  .game-wrap { animation: frameGlow 4s ease-in-out infinite; }
+  @keyframes frameGlow { 50% { box-shadow: 0 0 46px rgba(255,79,163,.18); } }
+  .game-wrap::after {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(120,200,255,.035) 0 1px, transparent 1px 4px);
+  }
+  .hud .box { background: linear-gradient(160deg, rgba(10,20,52,.94), rgba(5,10,28,.92)); }
+  .hud .box b { text-shadow: 0 0 12px rgba(56,232,255,.5); }
+  .hud .box#hudStatus { color: var(--green); border-color: #1e6b45; }
+
+  /* ===== HALAMAN LOGIN / DAFTAR ===== */
+  .auth-shell { display: grid; grid-template-columns: 1.05fr .95fr; gap: 22px; padding: 26px; align-items: center; overflow: hidden; }
+  .auth-hero { padding: 6px 4px; }
+  .auth-hero h2 {
+    margin: 14px 0 8px; font-size: clamp(21px, 3vw, 29px); letter-spacing: 2px; line-height: 1.25;
+    background: linear-gradient(90deg, var(--cyan), #fff 50%, var(--pink));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .auth-hero p { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 0; }
+  .hero-feats { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 8px; }
+  .hero-feats li {
+    font-size: 12.5px; color: #c7d9f7; background: rgba(8,16,42,.7);
+    border: 1px solid var(--line); border-left: 2px solid var(--cyan);
+    padding: 8px 11px; border-radius: 8px;
+  }
+  .hero-foot { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .orbit-logo { width: 130px; height: 130px; position: relative; margin: 2px auto 4px; display: grid; place-items: center; }
+  .orbit-ring { position: absolute; border: 1px solid rgba(56,232,255,.45); border-radius: 50%; }
+  .orbit-ring.r1 { inset: 2px; border-style: dashed; animation: spin 10s linear infinite; }
+  .orbit-ring.r2 { inset: 20px; border-color: rgba(255,79,163,.5); animation: spin 6s linear infinite reverse; }
+  .orbit-core { font-size: 42px; filter: drop-shadow(0 0 16px rgba(56,232,255,.7)); animation: float 3s ease-in-out infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes float { 50% { transform: translateY(-6px); } }
+  .auth-form { background: rgba(4,9,26,.62); border: 1px solid var(--line); border-radius: 16px; padding: 20px; }
+  .auth-form h2 { margin: 14px 0 2px; font-size: 19px; }
+  .tabs { display: flex; gap: 5px; background: rgba(5,10,28,.9); border: 1px solid var(--line); padding: 5px; border-radius: 12px; }
+  .tabs button { flex: 1; background: transparent; color: var(--muted); box-shadow: none; padding: 9px; }
+  .tabs button.active { background: linear-gradient(90deg, var(--cyan), #8af7ff); color: #04121f; }
+  .auth-divider { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 11px; margin: 16px 0 10px; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  details.adv { margin-top: 14px; font-size: 11px; color: var(--muted); }
+  details.adv summary { cursor: pointer; }
+  details.adv input { margin-top: 8px; font-size: 12px; padding: 8px 10px; }
+  @media (max-width: 760px) {
+    .auth-shell { grid-template-columns: 1fr; padding: 18px; }
+    .orbit-logo { width: 96px; height: 96px; }
+    .hero-feats { display: none; }
+  }
+
+  /* ===== KONSOL ADMIN ===== */
+  .admin-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .admin-head h2 { margin: 0; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0; }
+  .stat { background: rgba(5,10,28,.85); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .stat small { display: block; color: var(--muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+  .stat b { display: block; margin-top: 4px; font-size: 22px; color: var(--cyan); font-variant-numeric: tabular-nums; }
+  .admin-tabs { display: flex; gap: 6px; margin: 6px 0 12px; flex-wrap: wrap; }
+  .admin-tabs button { background: #27346a; color: var(--text); box-shadow: none; padding: 8px 14px; font-size: 12px; }
+  .admin-tabs button.active { background: linear-gradient(90deg, var(--cyan), #8af7ff); color: #04121f; }
+  .admin-table-wrap { max-height: 420px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+  .admin-table-wrap table { font-size: 12px; }
+  .admin-table-wrap th { position: sticky; top: 0; background: #0e1938; z-index: 1; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; border: 1px solid var(--line); }
+  .badge.admin { color: var(--gold); border-color: #6b5623; }
+  .badge.valid { color: var(--green); border-color: #1e6b45; }
 </style>
 </head>
 <body>
@@ -163,23 +239,52 @@
     <button class="secondary small" id="btnLobby">Hangar</button>
     <button class="secondary small" id="btnShop">Shop</button>
     <button class="secondary small" id="btnBoard">Leaderboard</button>
+    <button class="secondary small" id="btnAdmin">🛡️ Admin</button>
   </div>
 
-  <section class="panel" id="authPanel">
-    <h2>Masuk / Daftar Pilot</h2>
-    <label>Alamat API Backend</label>
-    <input id="apiUrl" placeholder="http://localhost:8000">
-    <div class="row" style="margin-top:10px">
-      <input id="regUser" placeholder="username" style="flex:1;min-width:150px">
-      <input id="regName" placeholder="nama tampilan" style="flex:1;min-width:150px">
+  <section class="panel auth-shell" id="authPanel">
+    <div class="auth-hero">
+      <div class="orbit-logo">
+        <div class="orbit-ring r1"></div><div class="orbit-ring r2"></div>
+        <div class="orbit-core">🚀</div>
+      </div>
+      <h2>PERTAHANKAN ORBIT</h2>
+      <p>Kumbang alien dari kedalaman luar angkasa sedang mendekat. Pilih pesawatmu, kunci senjata, dan pertahankan posisi teratas leaderboard.</p>
+      <ul class="hero-feats">
+        <li>🌌 Arena orbit 3D + radar sektor</li>
+        <li>🪲 Scarab, Stag, dan Rhino Beetle</li>
+        <li>🎯 3 pesawat & 5 senjata yang bisa dikombinasikan</li>
+        <li>🏆 Seed harian · progres & skor tersimpan</li>
+      </ul>
+      <div class="hero-foot">DITENAGAI OPENCODE AI AGENT</div>
     </div>
-    <label>Password</label>
-    <input id="regPass" type="password" placeholder="minimal 4 karakter">
-    <div class="row">
-      <button id="btnRegister">Daftar</button>
-      <button class="secondary" id="btnLogin">Login</button>
+    <div class="auth-form">
+      <div class="tabs">
+        <button class="active" id="btnLogin">Login</button>
+        <button id="btnRegister">Daftar</button>
+      </div>
+      <h2 id="authTitle">Selamat datang, Pilot</h2>
+      <p class="tagline" id="authSub">Masuk pakai email. Sesi tersimpan otomatis, jadi tidak perlu login lagi di perangkat ini.</p>
+      <label>Email</label>
+      <input id="regEmail" type="email" placeholder="nama@email.com" autocomplete="email">
+      <div id="registerFields" class="hidden">
+        <label>Nama tampilan</label>
+        <input id="regName" placeholder="nama di leaderboard">
+        <label>Username <span style="opacity:.7">(opsional)</span></label>
+        <input id="regUser" placeholder="kosongkan untuk otomatis">
+      </div>
+      <label>Password</label>
+      <input id="regPass" type="password" placeholder="minimal 4 karakter" autocomplete="current-password">
+      <div class="row"><button id="btnAuth">🚀 Masuk Sekarang</button></div>
+      <div class="msg" id="authMsg"></div>
+      <p class="tagline" style="font-size:11px;margin-top:8px">✓ Auto-login aktif setelah pertama kali masuk — cukup buka kembali link game-nya.</p>
+      <div class="auth-divider">atau</div>
+      <button class="secondary" id="btnAdminOpen" style="width:100%">🛡️ Masuk sebagai Admin</button>
+      <details class="adv">
+        <summary>Pengaturan API backend</summary>
+        <input id="apiUrl" placeholder="http://localhost:8000">
+      </details>
     </div>
-    <div class="msg" id="authMsg"></div>
   </section>
 
   <section class="panel hidden" id="lobbyPanel">
@@ -223,6 +328,22 @@
     <h2>Leaderboard</h2>
     <div id="boardList"></div>
   </section>
+
+  <section class="panel hidden" id="adminPanel">
+    <div class="admin-head">
+      <h2>🛡️ Admin Console</h2>
+      <button class="secondary small" id="btnAdminLogout">Keluar</button>
+    </div>
+    <p class="tagline">Pantau pemain, skor, dan sesi permainan. Akses hanya untuk akun admin tunggal.</p>
+    <div class="stat-grid" id="adminStats"></div>
+    <div class="admin-tabs">
+      <button class="active" data-atab="players">Pemain</button>
+      <button data-atab="scores">Skor</button>
+      <button data-atab="sessions">Sesi</button>
+    </div>
+    <div class="admin-table-wrap" id="adminContent"></div>
+    <div class="msg" id="adminMsg"></div>
+  </section>
 </div>
 
 <div class="overlay hidden" id="overlay">
@@ -235,6 +356,23 @@
       <button id="btnAgain">Main Lagi</button>
       <button class="secondary" id="btnMenu">Menu</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="adminOverlay">
+  <div class="modal">
+    <div class="icon">🛡️</div>
+    <h2>Akses Admin</h2>
+    <p>Hanya akun admin yang bisa membuka konsol ini.</p>
+    <label>Username admin</label>
+    <input id="adminUser" placeholder="admin" autocomplete="username">
+    <label>Password admin</label>
+    <input id="adminPass" type="password" placeholder="password admin" autocomplete="current-password">
+    <div class="row" style="justify-content:center">
+      <button id="btnAdminLogin">Masuk</button>
+      <button class="secondary" id="btnAdminCancel">Batal</button>
+    </div>
+    <div class="msg" id="adminLoginMsg"></div>
   </div>
 </div>
 
@@ -287,7 +425,7 @@ async function checkConnection() {
 }
 
 function showPanel(id) {
-  ['authPanel', 'lobbyPanel', 'gamePanel', 'shopPanel', 'boardPanel'].forEach(p => $(p).classList.add('hidden'));
+  ['authPanel', 'lobbyPanel', 'gamePanel', 'shopPanel', 'boardPanel', 'adminPanel'].forEach(p => $(p).classList.add('hidden'));
   if (id) $(id).classList.remove('hidden');
 }
 function setMsg(el, text, bad) {
@@ -296,20 +434,43 @@ function setMsg(el, text, bad) {
 }
 
 /* ===================== AUTH ===================== */
-async function doAuth(mode) {
-  const body = {
-    username: $('regUser').value.trim(),
-    display_name: $('regName').value.trim() || $('regUser').value.trim(),
-    password: $('regPass').value
-  };
+let authMode = 'login';
+function setAuthMode(mode) {
+  authMode = mode;
+  $('btnLogin').classList.toggle('active', mode === 'login');
+  $('btnRegister').classList.toggle('active', mode === 'register');
+  $('registerFields').classList.toggle('hidden', mode !== 'register');
+  $('authTitle').textContent = mode === 'login' ? 'Selamat datang, Pilot' : 'Bergabung dengan armada';
+  $('authSub').textContent = mode === 'login'
+    ? 'Masuk pakai email. Sesi tersimpan otomatis di perangkat ini.'
+    : 'Buat akun baru dengan email, mulai dari sektor pertama.';
+  $('btnAuth').textContent = mode === 'login' ? '🚀 Masuk Sekarang' : '✨ Buat Akun Pilot';
+  setMsg($('authMsg'), '');
+}
+$('btnLogin').addEventListener('click', () => setAuthMode('login'));
+$('btnRegister').addEventListener('click', () => setAuthMode('register'));
+
+async function doAuth() {
+  const email = $('regEmail').value.trim();
+  const pass = $('regPass').value;
+  const body = authMode === 'login'
+    ? { identifier: email, password: pass }
+    : {
+        email,
+        display_name: $('regName').value.trim() || email.split('@')[0],
+        password: pass,
+        ...($('regUser').value.trim() ? { username: $('regUser').value.trim() } : {})
+      };
   try {
-    player = await api('/api/players/' + mode, { method: 'POST', body: JSON.stringify(body) });
+    player = await api('/api/players/' + authMode, { method: 'POST', body: JSON.stringify(body) });
     localStorage.setItem(PLAYER_KEY, String(player.id));
     await afterLogin();
   } catch (e) { setMsg($('authMsg'), e.message, true); }
 }
-$('btnRegister').addEventListener('click', () => doAuth('register'));
-$('btnLogin').addEventListener('click', () => doAuth('login'));
+$('btnAuth').addEventListener('click', doAuth);
+['regEmail', 'regPass'].forEach(id => $(id).addEventListener('keydown', e => {
+  if (e.key === 'Enter') doAuth();
+}));
 
 async function afterLogin() {
   $('playerInfo').textContent = `${player.display_name} · ${player.coins} koin`;
@@ -391,6 +552,102 @@ async function renderBoard() {
 $('btnLobby').addEventListener('click', () => player ? showPanel('lobbyPanel') : showPanel('authPanel'));
 $('btnShop').addEventListener('click', () => { showPanel('shopPanel'); renderShop(); });
 $('btnBoard').addEventListener('click', () => { showPanel('boardPanel'); renderBoard(); });
+
+/* ===================== ADMIN (akun tunggal, butuh token) ===================== */
+const ADMIN_TOKEN_KEY = 'sf_admin_token';
+let adminToken = localStorage.getItem(ADMIN_TOKEN_KEY) || '';
+let adminTab = 'players';
+
+async function adminApi(path, options = {}) {
+  const base = (localStorage.getItem(API_KEY) || DEFAULT_API).replace(/\/$/, '');
+  const res = await fetch(base + path, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', 'X-Admin-Token': adminToken, ...(options.headers || {}) }
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (_) { data = text; }
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      adminToken = ''; localStorage.removeItem(ADMIN_TOKEN_KEY);
+      $('adminOverlay').classList.remove('hidden');
+    }
+    throw new Error((data && data.detail) || ('HTTP ' + res.status));
+  }
+  return data;
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function openAdmin() {
+  if (adminToken) {
+    showPanel('adminPanel');
+    loadAdmin();
+  } else {
+    $('adminOverlay').classList.remove('hidden');
+    setMsg($('adminLoginMsg'), '');
+  }
+}
+$('btnAdmin').addEventListener('click', openAdmin);
+$('btnAdminOpen').addEventListener('click', openAdmin);
+$('btnAdminCancel').addEventListener('click', () => $('adminOverlay').classList.add('hidden'));
+$('btnAdminLogout').addEventListener('click', () => {
+  adminToken = ''; localStorage.removeItem(ADMIN_TOKEN_KEY);
+  showPanel('authPanel');
+  $('adminOverlay').classList.remove('hidden');
+});
+$('btnAdminLogin').addEventListener('click', async () => {
+  try {
+    const base = (localStorage.getItem(API_KEY) || DEFAULT_API).replace(/\/$/, '');
+    const res = await fetch(base + '/api/admin/login', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: $('adminUser').value.trim(), password: $('adminPass').value })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Login admin gagal.');
+    adminToken = data.token;
+    localStorage.setItem(ADMIN_TOKEN_KEY, adminToken);
+    $('adminPass').value = '';
+    $('adminOverlay').classList.add('hidden');
+    await loadAdmin();
+    showPanel('adminPanel');
+  } catch (e) { setMsg($('adminLoginMsg'), e.message, true); }
+});
+$('adminPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('btnAdminLogin').click(); });
+document.querySelectorAll('[data-atab]').forEach(b => b.addEventListener('click', () => {
+  adminTab = b.dataset.atab;
+  document.querySelectorAll('[data-atab]').forEach(x => x.classList.toggle('active', x === b));
+  loadAdmin();
+}));
+async function loadAdmin() {
+  try {
+    const [stats, rows] = await Promise.all([
+      adminApi('/api/admin/stats'), adminApi('/api/admin/' + adminTab)
+    ]);
+    $('adminStats').innerHTML =
+      `<div class="stat"><small>Pemain</small><b>${stats.players}</b></div>` +
+      `<div class="stat"><small>Run selesai</small><b>${stats.finished_runs}</b></div>` +
+      `<div class="stat"><small>Run valid</small><b>${stats.valid_runs}</b></div>` +
+      `<div class="stat"><small>Total skor</small><b>${Number(stats.total_score).toLocaleString()}</b></div>` +
+      `<div class="stat"><small>Koin beredar</small><b>${Number(stats.coins_in_circulation).toLocaleString()}</b></div>`;
+    $('adminContent').innerHTML = renderAdminTable(adminTab, rows);
+    setMsg($('adminMsg'), '');
+  } catch (e) { setMsg($('adminMsg'), e.message, true); }
+}
+function renderAdminTable(tab, rows) {
+  if (!rows.length) return '<div class="empty">Belum ada data.</div>';
+  const head = {
+    players: ['#', 'Username', 'Nama', 'Skor terbaik', 'Koin', 'Role'],
+    scores: ['#', 'Pilot', 'Skor', 'Sektor', 'Kill', 'Status'],
+    sessions: ['#', 'Pilot', 'Status', 'Seed', 'Skor', 'Sektor']
+  }[tab];
+  const body = rows.map(r => {
+    if (tab === 'players') return `<tr><td>${r.id}</td><td>${esc(r.username)}</td><td>${esc(r.display_name)}</td><td>${r.best_score}</td><td>${r.coins}</td><td>${r.is_admin ? '<span class="badge admin">ADMIN</span>' : 'pilot'}</td></tr>`;
+    if (tab === 'scores') return `<tr><td>${r.id}</td><td>${esc(r.display_name)}</td><td>${r.score}</td><td>${r.wave}</td><td>${r.enemies_killed}</td><td>${r.validated ? '<span class="badge valid">VALID</span>' : 'invalid'}</td></tr>`;
+    return `<tr><td>${r.id}</td><td>${esc(r.username)}</td><td>${r.status}</td><td>${r.seed}</td><td>${r.score}</td><td>${r.wave}</td></tr>`;
+  }).join('');
+  return '<table><thead><tr>' + head.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>' + body + '</tbody></table>';
+}
 
 /* ===================== LOGIKA GAME (2D, dirender 3D) ===================== */
 const W = 960, H = 600;

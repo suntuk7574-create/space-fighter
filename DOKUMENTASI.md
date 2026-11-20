@@ -14,6 +14,7 @@
 - Musuh berupa **kumbang alien**: `scout` (Scarab), `raider` (Stag Beetle), dan `boss` (Rhinoceros Beetle, muncul tiap wave ke-5).
 - Power-up acak: `repair` (+1 nyawa) dan `coin` (+200 skor).
 - Skor akhir dikirim ke backend, divalidasi, lalu masuk **leaderboard** dan memberi **koin**.
+- Akun memakai **email + password** (email unik, username otomatis jika tidak diisi). Setelah login pertama, ID sesi disimpan di `localStorage` sehingga **auto-login** saat link dibuka ulang di perangkat yang sama.
 
 **Fitur pembeda:** **Seed harian**. Backend membuat seed dari tanggal memakai SHA-256; frontend memakai LCG dengan seed yang sama sehingga pola spawn musuh reproducible untuk semua pemain pada hari itu.
 
@@ -120,8 +121,8 @@ Dokumentasi otomatis: `http://localhost:8000/docs`
 | Method | Endpoint | Fungsi |
 |---|---|---|
 | GET | `/health` | Cek status server |
-| POST | `/api/players/register` | Daftar pemain |
-| POST | `/api/players/login` | Login pemain |
+| POST | `/api/players/register` | Daftar pemain (body: `email`, `display_name`, `password`, username opsional) |
+| POST | `/api/players/login` | Login pakai email (body: `identifier`/`email`, `password`; username lama tetap didukung) |
 | GET | `/api/players/{id}` | Detail profil |
 | GET | `/api/items` | Daftar item |
 | GET | `/api/players/{id}/inventory` | Inventory pemain |
@@ -131,6 +132,13 @@ Dokumentasi otomatis: `http://localhost:8000/docs`
 | POST | `/api/games/{session_id}/finish` | Kirim hasil run |
 | GET | `/api/leaderboard?limit=10` | Papan peringkat |
 | GET | `/api/players/{id}/history` | Riwayat permainan |
+| POST | `/api/admin/login` | Login admin tunggal → token HMAC |
+| GET | `/api/admin/stats` | Statistik global (butuh `X-Admin-Token`) |
+| GET | `/api/admin/players` | Daftar semua pemain |
+| GET | `/api/admin/scores` | Riwayat skor terakhir |
+| GET | `/api/admin/sessions` | Riwayat sesi terakhir |
+
+**Admin khusus:** hanya ada satu akun admin (`ADMIN_USERNAME`, default `admin`). Endpoint admin menolak permintaan tanpa token yang ditandatangani HMAC dengan `ADMIN_SECRET` (berlaku 24 jam). Token tidak bisa dipalsukan hanya dengan mengubah `player_id`. Di frontend, tombol **🛡️ Admin** membuka konsol berisi statistik, tabel pemain, skor, dan sesi. Kredensial default sebaiknya diganti lewat environment variable sebelum deploy.
 
 Contoh `POST /api/games/1/finish`:
 

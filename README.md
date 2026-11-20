@@ -2,7 +2,7 @@
 
 Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQLAlchemy + PostgreSQL + Three.js**. Pemain mengendalikan spaceship dan mempertahankan orbit dari gelombang **kumbang alien**.
 
-> **Demo publik (sementara):** https://liable-compute-freeze-arrival.trycloudflare.com
+> **Demo publik (sementara):** https://internal-patricia-nancy-designs.trycloudflare.com
 >
 > Link tunnel gratis bisa berubah/expire. Untuk menyalakan ulang: `.\scripts\start-demo.ps1`
 
@@ -14,7 +14,24 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 - Musuh kumbang alien: **Scarab**, **Stag Beetle**, dan **Rhino Beetle** (boss tiap wave ke-5).
 - **Seed harian** deterministik (SHA-256 + LCG) sehingga pola spawn sama untuk semua pemain.
 - Akun, koin, inventory, item, riwayat sesi, dan **leaderboard global** tersimpan di database relasional.
+- **Login pakai email + password** (email unik, username dibuat otomatis). Sesi tersimpan di browser → **auto-login**, tidak perlu login lagi saat membuka ulang link di perangkat yang sama.
 - Radar/mini-map sektor, efek partikel, glow, dan kontrol sentuh.
+- Halaman login/daftar bergaya landing page (orbit animasi, tab Login/Daftar) dan HUD game yang dipoles.
+- **Admin console khusus satu akun**: statistik global + tabel pemain, skor, dan sesi. Dilindungi token HMAC 24 jam.
+
+## 🛡️ Akses admin (khusus pemilik game)
+
+Klik tombol **🛡️ Admin** → masukkan kredensial admin. Default: username `admin`, password `admin123`.
+Ganti lewat environment variable sebelum deploy:
+
+```env
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=password-baru-anda
+ADMIN_DISPLAY_NAME=Administrator
+ADMIN_SECRET=string-acak-panjang
+```
+
+Hanya satu akun yang bisa menjadi admin; endpoint admin menolak request tanpa `X-Admin-Token` yang valid.
 
 ## 🛠️ Teknologi
 

@@ -25,11 +25,13 @@ class Player(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False, index=True)
+    email = Column(String(120), unique=True, nullable=True, index=True)
     display_name = Column(String(80), nullable=False)
     password_hash = Column(String(255), nullable=False)
     coins = Column(Integer, default=0, nullable=False)
     total_score = Column(Integer, default=0, nullable=False)
     best_score = Column(Integer, default=0, nullable=False)
+    is_admin = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=now, nullable=False)
 
     sessions = relationship("GameSession", back_populates="player")
