@@ -45,4 +45,5 @@ if (-not (Test-Path $cloudflared)) {
 }
 
 Write-Host "Membuka tunnel publik. Tunggu sampai URL trycloudflare.com muncul..."
-& $cloudflared tunnel --url "http://127.0.0.1:$Port"
+# http2 lebih stabil daripada quic pada jaringan Wi-Fi/download yang membatasi UDP.
+& $cloudflared tunnel --protocol http2 --url "http://127.0.0.1:$Port"
