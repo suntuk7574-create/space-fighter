@@ -23,12 +23,12 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 - Radar/mini-map sektor, efek partikel, glow, dan kontrol: keyboard (A/D, ←/→, SPACE), tombol sentuh ◀ ▶ 🔫 di HP, atau geser jari untuk mengarahkan pesawat. Tampilan game melebar penuh di layar HP + tombol layar penuh.
 - **Mode hemat daya otomatis di HP**: pixel ratio diturunkan, antialias dimatikan, jumlah bintang/debu/asteroid/jejak plasma dipangkas, dan api mesin disederhanakan. Kualitas tetap tinggi di desktop.
 - Halaman login/daftar bergaya landing page (orbit animasi, tab Login/Daftar) dan HUD game yang dipoles.
-- **Admin console khusus satu akun**: statistik global + tabel pemain, skor, dan sesi. Dilindungi token HMAC 24 jam.
+- **Admin console khusus satu akun**: tombol/admin login **disembunyikan dari pemain biasa**. Pemilik membuka pintu masuk lewat `?admin=1` sekali, lalu token HMAC 24 jam membuat tombol 🛡️ Admin muncul di perangkatnya saja.
+- **Hak blokir admin**: dari tabel Pemain, admin bisa **Blokir / Buka blokir** akun. Pemain diblokir tidak bisa login, mulai sesi, beli item, atau masuk leaderboard; skor terakhirnya tetap ditolak. **Peringkat lawan tetap bisa dilihat semua pemain** lewat Leaderboard.
 
 ## 🛡️ Akses admin (khusus pemilik game)
 
-Klik tombol **🛡️ Admin** → masukkan kredensial admin. Default: username `admin`, password `admin123`.
-Ganti lewat environment variable sebelum deploy:
+Buka `https://applicants-rural-genres-subsequently.trycloudflare.com/?admin=1` → tombol **🛡️ Masuk sebagai Admin** akan muncul → masukkan kredensial admin dari environment variable berikut:
 
 ```env
 ADMIN_USERNAME=admin
@@ -37,7 +37,7 @@ ADMIN_DISPLAY_NAME=Administrator
 ADMIN_SECRET=string-acak-panjang
 ```
 
-Hanya satu akun yang bisa menjadi admin; endpoint admin menolak request tanpa `X-Admin-Token` yang valid.
+Hanya satu akun yang bisa menjadi admin; endpoint admin menolak request tanpa `X-Admin-Token` yang valid. Tombol admin otomatis hilang untuk pemain biasa.
 
 ## 🛠️ Teknologi
 

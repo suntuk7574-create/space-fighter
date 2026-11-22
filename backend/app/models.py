@@ -32,6 +32,7 @@ class Player(Base):
     total_score = Column(Integer, default=0, nullable=False)
     best_score = Column(Integer, default=0, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
+    is_blocked = Column(Boolean, default=False, nullable=False, index=True)
     created_at = Column(DateTime, default=now, nullable=False)
 
     sessions = relationship("GameSession", back_populates="player")

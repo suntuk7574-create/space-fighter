@@ -167,6 +167,13 @@ def get_player_or_404(db: Session, player_id: int) -> models.Player:
     return player
 
 
+def ensure_not_blocked(player: models.Player) -> None:
+    if player.is_blocked:
+        raise HTTPException(
+            status_code=403, detail="Akun kamu diblokir admin. Hubungi pemilik game."
+        )
+
+
 # ---------- AUTH & PLAYER ----------
 
 def normalize_email(value: str) -> str:
@@ -211,6 +218,7 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
     ).first()
     if not player or not verify_password(payload.password, player.password_hash):
         raise HTTPException(status_code=401, detail="Email atau password salah.")
+    ensure_not_blocked(player)
     return player
 
 
@@ -246,6 +254,7 @@ def get_inventory(player_id: int, db: Session = Depends(get_db)):
 @app.post("/api/players/{player_id}/items/{item_code}/buy", response_model=schemas.MessageOut)
 def buy_item(player_id: int, item_code: str, db: Session = Depends(get_db)):
     player = get_player_or_404(db, player_id)
+    ensure_not_blocked(player)
     item = db.query(models.Item).filter_by(code=item_code).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item tidak ditemukan.")
@@ -275,6 +284,7 @@ def buy_item(player_id: int, item_code: str, db: Session = Depends(get_db)):
 @app.post("/api/games/start", response_model=schemas.SessionOut)
 def start_game(payload: schemas.StartGameIn, db: Session = Depends(get_db)):
     player = get_player_or_404(db, payload.player_id)
+    ensure_not_blocked(player)
 
     shield_active = False
     rapid_active = False
@@ -332,6 +342,7 @@ def finish_game(
     if session.status != "in_progress":
         raise HTTPException(status_code=400, detail="Sesi sudah selesai.")
 
+    player = get_player_or_404(db, session.player_id)
     valid, reason = validate_run(
         payload.score,
         payload.wave,
@@ -339,6 +350,8 @@ def finish_game(
         payload.duration_seconds,
         payload.max_combo,
     )
+    if player.is_blocked:
+        valid, reason = False, "Akun telah diblokir admin."
 
     session.score = payload.score
     session.wave = payload.wave
@@ -350,7 +363,6 @@ def finish_game(
     coins_earned = 0
     rank = None
     if valid:
-        player = get_player_or_404(db, session.player_id)
         coins_earned = payload.score // 100 + payload.wave * 5
         player.coins += coins_earned
         player.total_score += payload.score
@@ -394,7 +406,10 @@ def leaderboard(limit: int = Query(10, ge=1, le=100), db: Session = Depends(get_
     rows = (
         db.query(models.Score, models.Player)
         .join(models.Player, models.Score.player_id == models.Player.id)
-        .filter(models.Score.validated.is_(True))
+        .filter(
+            models.Score.validated.is_(True),
+            models.Player.is_blocked.is_(False),
+        )
         .order_by(desc(models.Score.score), models.Score.created_at)
         .limit(limit)
         .all()
@@ -446,6 +461,10 @@ def admin_stats(
     scores = db.query(models.Score)
     return schemas.AdminStatsOut(
         players=db.query(func.count(models.Player.id)).scalar() or 0,
+        blocked_players=db.query(func.count(models.Player.id))
+        .filter(models.Player.is_blocked.is_(True))
+        .scalar()
+        or 0,
         finished_runs=scores.count(),
         valid_runs=scores.filter(models.Score.validated.is_(True)).count(),
         total_score=db.query(func.coalesce(func.sum(models.Score.score), 0))
@@ -466,6 +485,22 @@ def admin_players(
         .order_by(desc(models.Player.best_score), models.Player.id)
         .all()
     )
+
+
+@app.patch("/api/admin/players/{player_id}/block", response_model=schemas.MessageOut)
+def set_player_blocked(
+    player_id: int,
+    payload: schemas.BlockIn,
+    admin: models.Player = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    target = get_player_or_404(db, player_id)
+    if target.is_admin:
+        raise HTTPException(status_code=400, detail="Akun admin tidak bisa diblokir.")
+    target.is_blocked = payload.blocked
+    db.commit()
+    action = "diblokir" if payload.blocked else "dibuka blokirannya"
+    return {"message": f"{target.display_name} {action}."}
 
 
 @app.get("/api/admin/scores", response_model=List[schemas.AdminScoreOut])

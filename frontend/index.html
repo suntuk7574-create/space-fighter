@@ -282,6 +282,9 @@
   .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; border: 1px solid var(--line); }
   .badge.admin { color: var(--gold); border-color: #6b5623; }
   .badge.valid { color: var(--green); border-color: #1e6b45; }
+  .badge.blocked { color: var(--red); border-color: #7a2b2b; }
+  button.block-btn { background: #7a2b2b; color: #fff; box-shadow: none; padding: 5px 9px; font-size: 11px; }
+  button.block-btn.unblock { background: #1e6b45; }
 
   /* ===== MODE HP: area game lebih lebar & penuh layar ===== */
   @media (max-width: 700px) {
@@ -326,7 +329,7 @@
     <button class="secondary small" id="btnLobby">Hangar</button>
     <button class="secondary small" id="btnShop">Shop</button>
     <button class="secondary small" id="btnBoard">Leaderboard</button>
-    <button class="secondary small" id="btnAdmin">🛡️ Admin</button>
+    <button class="secondary small hidden" id="btnAdmin">🛡️ Admin</button>
   </div>
 
   <section class="panel auth-shell" id="authPanel">
@@ -366,7 +369,7 @@
       <div class="msg" id="authMsg"></div>
       <p class="tagline" style="font-size:11px;margin-top:8px">✓ Auto-login aktif setelah pertama kali masuk — cukup buka kembali link game-nya.</p>
       <div class="auth-divider">atau</div>
-      <button class="secondary" id="btnAdminOpen" style="width:100%">🛡️ Masuk sebagai Admin</button>
+      <button class="secondary hidden" id="btnAdminOpen" style="width:100%">🛡️ Masuk sebagai Admin</button>
       <details class="adv">
         <summary>Pengaturan API backend</summary>
         <input id="apiUrl" placeholder="http://localhost:8000">
@@ -475,6 +478,18 @@
       <button class="secondary" id="btnAdminCancel">Batal</button>
     </div>
     <div class="msg" id="adminLoginMsg"></div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="blockedOverlay">
+  <div class="modal">
+    <div class="icon">⛔</div>
+    <h2>Akses Ditangguhkan</h2>
+    <p id="blockedText">Akun kamu diblokir oleh admin. Skor dan leaderboard lawan tetap bisa dilihat, tapi kamu belum bisa main.</p>
+    <div class="row" style="justify-content:center">
+      <button class="secondary" id="btnBlockedBoard">Lihat Leaderboard</button>
+      <button class="secondary" id="btnBlockedLogout">Keluar Akun</button>
+    </div>
   </div>
 </div>
 
@@ -682,6 +697,9 @@ $('btnAuth').addEventListener('click', doAuth);
 
 async function afterLogin() {
   $('playerInfo').textContent = `${player.display_name} · ${player.coins} koin`;
+  $('blockedOverlay').classList.add('hidden');
+  updateAdminVisibility();
+  if (player.is_blocked) { showBlocked(); return; }
   await refreshInventory();
   showPanel('lobbyPanel');
 }
@@ -806,6 +824,13 @@ $('btnBoard').addEventListener('click', () => { showPanel('boardPanel'); renderB
 const ADMIN_TOKEN_KEY = 'sf_admin_token';
 let adminToken = localStorage.getItem(ADMIN_TOKEN_KEY) || '';
 let adminTab = 'players';
+// Pintu masuk admin sengaja disembunyikan. Pemilik bisa membukanya lewat ?admin=1.
+const ADMIN_PORTAL = new URLSearchParams(location.search).get('admin') === '1';
+function updateAdminVisibility() {
+  const signedInAdmin = !!adminToken || !!(player && player.is_admin);
+  $('btnAdmin').classList.toggle('hidden', !signedInAdmin);
+  $('btnAdminOpen').classList.toggle('hidden', !(signedInAdmin || ADMIN_PORTAL));
+}
 
 async function adminApi(path, options = {}) {
   const base = (localStorage.getItem(API_KEY) || DEFAULT_API).replace(/\/$/, '');
@@ -819,6 +844,7 @@ async function adminApi(path, options = {}) {
   if (!res.ok) {
     if (res.status === 401 || res.status === 403) {
       adminToken = ''; localStorage.removeItem(ADMIN_TOKEN_KEY);
+      updateAdminVisibility();
       $('adminOverlay').classList.remove('hidden');
     }
     throw new Error((data && data.detail) || ('HTTP ' + res.status));
@@ -840,8 +866,27 @@ function openAdmin() {
 $('btnAdmin').addEventListener('click', openAdmin);
 $('btnAdminOpen').addEventListener('click', openAdmin);
 $('btnAdminCancel').addEventListener('click', () => $('adminOverlay').classList.add('hidden'));
+function showBlocked() {
+  $('playerInfo').textContent = player ? `${player.display_name} · DIBLOKIR` : 'Akun diblokir';
+  $('btnAdmin').classList.add('hidden');
+  $('blockedOverlay').classList.remove('hidden');
+}
+$('btnBlockedBoard').addEventListener('click', async () => {
+  $('blockedOverlay').classList.add('hidden');
+  showPanel('boardPanel');
+  await renderBoard();
+});
+$('btnBlockedLogout').addEventListener('click', () => {
+  localStorage.removeItem(PLAYER_KEY);
+  player = null;
+  $('blockedOverlay').classList.add('hidden');
+  $('playerInfo').textContent = 'Belum login';
+  updateAdminVisibility();
+  showPanel('authPanel');
+});
 $('btnAdminLogout').addEventListener('click', () => {
   adminToken = ''; localStorage.removeItem(ADMIN_TOKEN_KEY);
+  updateAdminVisibility();
   showPanel('authPanel');
   $('adminOverlay').classList.remove('hidden');
 });
@@ -856,6 +901,7 @@ $('btnAdminLogin').addEventListener('click', async () => {
     if (!res.ok) throw new Error(data.detail || 'Login admin gagal.');
     adminToken = data.token;
     localStorage.setItem(ADMIN_TOKEN_KEY, adminToken);
+    updateAdminVisibility();
     $('adminPass').value = '';
     $('adminOverlay').classList.add('hidden');
     await loadAdmin();
@@ -868,6 +914,16 @@ document.querySelectorAll('[data-atab]').forEach(b => b.addEventListener('click'
   document.querySelectorAll('[data-atab]').forEach(x => x.classList.toggle('active', x === b));
   loadAdmin();
 }));
+async function setPlayerBlocked(playerId, blocked) {
+  try {
+    const res = await adminApi(`/api/admin/players/${playerId}/block`, {
+      method: 'PATCH',
+      body: JSON.stringify({ blocked })
+    });
+    setMsg($('adminMsg'), res.message);
+    await loadAdmin();
+  } catch (e) { setMsg($('adminMsg'), e.message, true); }
+}
 async function loadAdmin() {
   try {
     const [stats, rows] = await Promise.all([
@@ -875,23 +931,34 @@ async function loadAdmin() {
     ]);
     $('adminStats').innerHTML =
       `<div class="stat"><small>Pemain</small><b>${stats.players}</b></div>` +
+      `<div class="stat"><small>Diblokir</small><b>${stats.blocked_players}</b></div>` +
       `<div class="stat"><small>Run selesai</small><b>${stats.finished_runs}</b></div>` +
       `<div class="stat"><small>Run valid</small><b>${stats.valid_runs}</b></div>` +
       `<div class="stat"><small>Total skor</small><b>${Number(stats.total_score).toLocaleString()}</b></div>` +
       `<div class="stat"><small>Koin beredar</small><b>${Number(stats.coins_in_circulation).toLocaleString()}</b></div>`;
     $('adminContent').innerHTML = renderAdminTable(adminTab, rows);
+    $('adminContent').querySelectorAll('[data-block-id]').forEach(btn => {
+      btn.addEventListener('click', () => setPlayerBlocked(+btn.dataset.blockId, btn.dataset.blocked === '1'));
+    });
     setMsg($('adminMsg'), '');
   } catch (e) { setMsg($('adminMsg'), e.message, true); }
 }
 function renderAdminTable(tab, rows) {
   if (!rows.length) return '<div class="empty">Belum ada data.</div>';
   const head = {
-    players: ['#', 'Username', 'Nama', 'Skor terbaik', 'Koin', 'Role'],
+    players: ['#', 'Username', 'Nama', 'Skor terbaik', 'Koin', 'Role', 'Aksi'],
     scores: ['#', 'Pilot', 'Skor', 'Sektor', 'Kill', 'Status'],
     sessions: ['#', 'Pilot', 'Status', 'Seed', 'Skor', 'Sektor']
   }[tab];
   const body = rows.map(r => {
-    if (tab === 'players') return `<tr><td>${r.id}</td><td>${esc(r.username)}</td><td>${esc(r.display_name)}</td><td>${r.best_score}</td><td>${r.coins}</td><td>${r.is_admin ? '<span class="badge admin">ADMIN</span>' : 'pilot'}</td></tr>`;
+    if (tab === 'players') {
+      const role = r.is_admin ? '<span class="badge admin">ADMIN</span>' : 'pilot';
+      const blocked = r.is_blocked ? ' <span class="badge blocked">BLOKIR</span>' : '';
+      const action = r.is_admin
+        ? '—'
+        : `<button class="block-btn${r.is_blocked ? ' unblock' : ''}" data-block-id="${r.id}" data-blocked="${r.is_blocked ? '0' : '1'}">${r.is_blocked ? 'Buka' : 'Blokir'}</button>`;
+      return `<tr><td>${r.id}</td><td>${esc(r.username)}</td><td>${esc(r.display_name)}</td><td>${r.best_score}</td><td>${r.coins}</td><td>${role}${blocked}</td><td>${action}</td></tr>`;
+    }
     if (tab === 'scores') return `<tr><td>${r.id}</td><td>${esc(r.display_name)}</td><td>${r.score}</td><td>${r.wave}</td><td>${r.enemies_killed}</td><td>${r.validated ? '<span class="badge valid">VALID</span>' : 'invalid'}</td></tr>`;
     return `<tr><td>${r.id}</td><td>${esc(r.username)}</td><td>${r.status}</td><td>${r.seed}</td><td>${r.score}</td><td>${r.wave}</td></tr>`;
   }).join('');
@@ -2321,6 +2388,7 @@ function loop(ts) {
 /* ===================== START / FINISH ===================== */
 $('btnStart').addEventListener('click', async () => {
   if (!player) return showPanel('authPanel');
+  if (player.is_blocked) return showBlocked();
   setMsg($('lobbyMsg'), 'Menyiapkan sesi...');
   try {
     session = await api('/api/games/start', {
@@ -2456,6 +2524,7 @@ document.addEventListener('fullscreenchange', resizeScene);
 /* ===================== INIT ===================== */
 (async function init() {
   $('btnSound').textContent = soundOn ? '🔊 Suara' : '🔇 Bisu';
+  updateAdminVisibility();
   renderLoadout();
   syncMeshes(0);
   drawMinimap();

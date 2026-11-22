@@ -56,3 +56,11 @@ def init_db():
                         "ADD COLUMN email VARCHAR(120) UNIQUE"
                     )
                 )
+        if "is_blocked" not in columns:
+            with engine.begin() as conn:
+                conn.execute(
+                    text(
+                        "ALTER TABLE players "
+                        "ADD COLUMN is_blocked BOOLEAN NOT NULL DEFAULT FALSE"
+                    )
+                )

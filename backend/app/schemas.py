@@ -36,6 +36,7 @@ class PlayerOut(ORMBase):
     total_score: int
     best_score: int
     is_admin: bool = False
+    is_blocked: bool = False
     created_at: datetime
 
 
@@ -129,6 +130,7 @@ class AdminPlayerOut(ORMBase):
     total_score: int
     best_score: int
     is_admin: bool
+    is_blocked: bool
     created_at: datetime
 
 
@@ -161,7 +163,12 @@ class AdminSessionOut(ORMBase):
 
 class AdminStatsOut(BaseModel):
     players: int
+    blocked_players: int
     finished_runs: int
     valid_runs: int
     total_score: int
     coins_in_circulation: int
+
+
+class BlockIn(BaseModel):
+    blocked: bool

@@ -133,15 +133,18 @@ Dokumentasi otomatis: `http://localhost:8000/docs`
 | POST | `/api/games/start` | Mulai sesi (body: `player_id`, `equip`) |
 | GET | `/api/games/{session_id}` | Ambil sesi |
 | POST | `/api/games/{session_id}/finish` | Kirim hasil run |
-| GET | `/api/leaderboard?limit=10` | Papan peringkat |
+| GET | `/api/leaderboard?limit=10` | Papan peringkat publik (akun diblokir disembunyikan) |
 | GET | `/api/players/{id}/history` | Riwayat permainan |
 | POST | `/api/admin/login` | Login admin tunggal → token HMAC |
 | GET | `/api/admin/stats` | Statistik global (butuh `X-Admin-Token`) |
-| GET | `/api/admin/players` | Daftar semua pemain |
+| GET | `/api/admin/players` | Daftar semua pemain (termasuk status blokir) |
+| PATCH | `/api/admin/players/{id}/block` | Blokir / buka blokir (body: `{"blocked": true/false}`) |
 | GET | `/api/admin/scores` | Riwayat skor terakhir |
 | GET | `/api/admin/sessions` | Riwayat sesi terakhir |
 
-**Admin khusus:** hanya ada satu akun admin (`ADMIN_USERNAME`, default `admin`). Endpoint admin menolak permintaan tanpa token yang ditandatangani HMAC dengan `ADMIN_SECRET` (berlaku 24 jam). Token tidak bisa dipalsukan hanya dengan mengubah `player_id`. Di frontend, tombol **🛡️ Admin** membuka konsol berisi statistik, tabel pemain, skor, dan sesi. Kredensial default sebaiknya diganti lewat environment variable sebelum deploy.
+**Admin khusus:** hanya ada satu akun admin (`ADMIN_USERNAME`, default `admin`). Endpoint admin menolak permintaan tanpa token yang ditandatangani HMAC dengan `ADMIN_SECRET` (berlaku 24 jam). Token tidak bisa dipalsukan hanya dengan mengubah `player_id`. Di frontend, tombol **🛡️ Admin** dan **🛡️ Masuk sebagai Admin** disembunyikan dari pemain biasa; pemilik membuka pintu masuk dengan query `?admin=1` sekali, lalu token membuat tombol admin muncul hanya di perangkatnya. Konsol berisi statistik (termasuk jumlah pemain diblokir), tabel pemain, skor, dan sesi, plus aksi **Blokir / Buka**.
+
+**Blokir pemain:** kolom `players.is_blocked` (migrasi otomatis). Pemain diblokir ditolak saat login, beli item, dan mulai sesi (403); skor yang dikirim tanpa sengaja tetap ditandai invalid dan tidak memberi koin. Akun diblokir juga tidak muncul di leaderboard, sehingga **peringkat lawan tetap bisa dilihat pemain lain**. Admin tidak bisa memblokir dirinya sendiri. Kredensial default sebaiknya diganti lewat environment variable sebelum deploy.
 
 Contoh `POST /api/games/1/finish`:
 
