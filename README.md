@@ -28,7 +28,7 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 
 ## 🛡️ Akses admin (khusus pemilik game)
 
-Buka `https://applicants-rural-genres-subsequently.trycloudflare.com/?admin=1` → tombol **🛡️ Masuk sebagai Admin** akan muncul → masukkan kredensial admin dari environment variable berikut:
+Buka URL game dengan parameter portal pribadi (disimpan pemilik sebagai bookmark, **jangan dibagikan**) → tombol **🛡️ Masuk sebagai Admin** akan muncul → masukkan kredensial admin dari environment variable berikut:
 
 ```env
 ADMIN_USERNAME=admin
