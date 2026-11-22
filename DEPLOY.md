@@ -142,6 +142,19 @@ Lalu teman di WiFi yang sama buka `http://IP-LAPTOP-KAMU:8000`. Firewall Windows
 
 Kenapa demo laptop masih ringan: arena Three.js, partikel, dan audio dihitung di perangkat pemain. Database hanya menyimpan akun, inventory, sesi, dan skor; request bersifat singkat. Beban-naik terjadi terutama saat banyak orang **login bersamaan** karena PBKDF2 120.000 round dipakai untuk hash password.
 
+### Cara naik ke kapasitas lebih besar
+
+1. **Deploy permanen** (langkah 3–4 di atas): Neon untuk DB + Render/Railway untuk backend. Ini menghilangkan masalah laptop mati dan URL berubah.
+2. **Tambah worker**: di dashboard Render/Railway pakai minimal paket **Starter**, lalu ubah Start Command:
+   ```bash
+   cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 4
+   ```
+   Paket gratis biasanya hanya 1 worker, jadi `--workers` tidak akan efektif di sana.
+3. **Connection pooling DB**: aktifkan **PgBouncer** di Neon/Supabase dan pakai connection string pooled. Ini mencegah antrean koneksi saat banyak request bersamaan.
+4. **Indeks**: tambahkan indeks pada `scores(score DESC)`, `scores(player_id)`, dan `players(is_blocked)` kalau riwayat sudah besar.
+5. **Cache leaderboard** 15–30 detik (Redis atau in-memory) + **rate limit** login/register. Ini menghemat DB saat banyak pemain membuka papan peringkat bersamaan.
+6. **Di atas ~1000 pemain aktif**: baru perlu load balancer, beberapa instance, Redis, dan DB replica. Untuk tugas kuliah biasanya tidak sampai ke tahap ini.
+
 - Paket **gratis** Render/Neon biasanya **sleep** saat tidak dipakai dan punya batas koneksi. Untuk puluhan pemain simultan, naikkan ke paket berbayar.
 - Jangan simpan password di kode/`.env` yang ter-commit. Memakai Environment Variable di dashboard host sudah aman.
 - Kalau ada ribuan pemain, tambahkan indexing/indeks dan connection pooling (mis. PgBouncer). Untuk tugas kuliah, konfigurasi saat ini sudah memadai.
