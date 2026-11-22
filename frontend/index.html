@@ -132,6 +132,42 @@
   .loadout-card.locked b { color: var(--muted); }
   .loadout-title { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin: 6px 0 4px; text-transform: uppercase; }
 
+  /* Ringkasan loadout: preview + stat jadi satu layar */
+  .loadout-summary {
+    display: grid; grid-template-columns: minmax(190px, .85fr) 1.15fr; gap: 16px; align-items: center;
+    background: linear-gradient(120deg, rgba(12,24,64,.95), rgba(5,10,28,.92));
+    border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin: 6px 0 14px;
+  }
+  .preview-ship { display: flex; gap: 12px; align-items: center; }
+  .preview-icon {
+    font-size: 46px; line-height: 1; animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 14px var(--accent, var(--cyan)));
+  }
+  .preview-meta b { display: block; font-size: 17px; letter-spacing: 1px; color: var(--accent, var(--cyan)); }
+  .preview-meta small { display: block; font-size: 11px; color: var(--muted); line-height: 1.45; margin-top: 3px; }
+  .preview-meta .equipped-note { margin-top: 6px; font-size: 10px; color: var(--gold); }
+  .loadout-stats { display: grid; gap: 7px; }
+  .statline { display: grid; grid-template-columns: 62px 1fr 46px; gap: 8px; align-items: center; font-size: 10px; color: var(--muted); letter-spacing: .5px; }
+  .statbar { height: 7px; border-radius: 8px; background: #07102a; border: 1px solid var(--line); overflow: hidden; }
+  .statbar i {
+    display: block; height: 100%; border-radius: 8px;
+    background: linear-gradient(90deg, var(--cyan), var(--accent, var(--pink)));
+    box-shadow: 0 0 12px var(--accent, var(--cyan));
+  }
+  .statline em { font-style: normal; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+  .loadout-card .tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 4px; }
+  .tag { font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 20px; padding: 1px 6px; }
+  .tag.hot { color: var(--gold); border-color: #6b5623; }
+  .hud .box#hudBuff { color: var(--gold); border-color: #6b5623; min-width: 92px; }
+  .toast {
+    position: absolute; left: 50%; top: 44%; z-index: 2; opacity: 0; pointer-events: none;
+    transform: translate(-50%, -50%) scale(.88); transition: opacity .18s ease, transform .18s ease;
+    font-weight: 900; font-size: clamp(14px, 2.4vw, 21px); letter-spacing: 1.4px;
+    text-shadow: 0 0 18px currentColor; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  button.icon-btn { background: rgba(9,18,44,.9); color: var(--text); border: 1px solid var(--line); box-shadow: none; }
+
   /* Shop pesawat + kontrol sentuh HP */
   .ship-shop { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin: 10px 0 16px; }
   .ship-shop .item { align-items: center; }
@@ -270,6 +306,9 @@
     .auth-shell { padding: 16px; }
     .admin-table-wrap table { font-size: 11px; }
     .game-actions { justify-content: center; }
+    .loadout-summary { grid-template-columns: 1fr; gap: 10px; padding: 11px; }
+    .preview-icon { font-size: 36px; }
+    .hud .box#hudBuff { grid-column: span 3; text-align: center; }
   }
 </style>
 </head>
@@ -338,6 +377,7 @@
   <section class="panel hidden" id="lobbyPanel">
     <h2>Hangar · Persiapan Sesi</h2>
     <p class="tagline">Pilih model pesawat & senjata, lalu luncurkan serangan. Pesawat premium bisa dibeli di Shop.</p>
+    <div class="loadout-summary" id="loadoutSummary"></div>
     <div class="loadout-title">Model Pesawat</div>
     <div class="loadout" id="shipBox"></div>
     <div class="loadout-title">Senjata</div>
@@ -357,11 +397,13 @@
       <div class="box">Senjata <b id="hudWeapon">PULSE</b></div>
       <div class="box">Seed <b id="hudSeed">-</b></div>
       <div class="box" id="hudStatus">LIVE</div>
+      <div class="box" id="hudBuff">—</div>
     </div>
     <div class="game-wrap" id="gameWrap">
       <canvas id="scene" width="960" height="600"></canvas>
       <div class="sector" id="sectorLabel">SEKTOR 01</div>
       <canvas id="minimap" width="336" height="224"></canvas>
+      <div class="toast" id="gameToast"></div>
     </div>
     <div class="touch-controls" id="touchControls">
       <button id="btnMoveLeft" aria-label="Gerak kiri">◀</button>
@@ -369,9 +411,10 @@
       <button id="btnMoveRight" aria-label="Gerak kanan">▶</button>
     </div>
     <div class="game-actions">
+      <button class="secondary small icon-btn" id="btnSound">🔊 Suara</button>
       <button class="secondary small" id="btnFullscreen">⛶ Layar Penuh</button>
     </div>
-    <p class="hint">A / D · ← → = gerak &nbsp;|&nbsp; SPACE = tembak &nbsp;|&nbsp; P = pause &nbsp;|&nbsp; HP: tombol ◀ ▶ / geser jari di layar</p>
+    <p class="hint">A / D · ← → = gerak &nbsp;|&nbsp; SPACE = tembak &nbsp;|&nbsp; P = pause &nbsp;|&nbsp; M = suara &nbsp;|&nbsp; HP: tombol ◀ ▶ / geser jari di layar<br>Kumpulkan ⚡ Rapid · 🛡️ Shield · 🔥 Surge · 💚 Repair dari alien yang dikalahkan.</p>
   </section>
 
   <section class="panel hidden" id="shopPanel">
@@ -492,6 +535,112 @@ function setMsg(el, text, bad) {
   el.className = 'msg' + (bad ? ' bad' : '');
 }
 
+/* ===================== SUARA: WEB AUDIO TANPA FILE EKSTERNAL ===================== */
+const SOUND_KEY = 'sf_sound';
+let soundOn = localStorage.getItem(SOUND_KEY) !== '0';
+let audioCtx = null, masterGain = null, ambient = null, noiseBuffer = null;
+
+function initAudio() {
+  if (audioCtx) {
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    return true;
+  }
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    audioCtx = new AC();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = soundOn ? .5 : 0;
+    masterGain.connect(audioCtx.destination);
+    return true;
+  } catch (_) { audioCtx = null; return false; }
+}
+function getNoiseBuffer() {
+  if (noiseBuffer) return noiseBuffer;
+  const len = Math.floor(audioCtx.sampleRate * .35);
+  noiseBuffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  return noiseBuffer;
+}
+function tone(freq, dur, type, vol, slide, delay = 0) {
+  if (!soundOn || !initAudio()) return;
+  try {
+    const t = audioCtx.currentTime + delay;
+    const osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    if (slide) osc.frequency.exponentialRampToValueAtTime(Math.max(20, slide), t + dur);
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + .008);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(t); osc.stop(t + dur + .02);
+  } catch (_) { /* audio opsional */ }
+}
+function noise(dur, vol, cutoff) {
+  if (!soundOn || !initAudio()) return;
+  try {
+    const t = audioCtx.currentTime;
+    const src = audioCtx.createBufferSource(), filter = audioCtx.createBiquadFilter(), g = audioCtx.createGain();
+    src.buffer = getNoiseBuffer();
+    filter.type = 'lowpass'; filter.frequency.value = cutoff || 1400;
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    src.connect(filter); filter.connect(g); g.connect(masterGain);
+    src.start(t); src.stop(t + dur);
+  } catch (_) { /* audio opsional */ }
+}
+function sfx(name, extra) {
+  if (!soundOn) return;
+  switch (name) {
+    case 'shoot':
+      tone(extra === 'plasma' ? 320 : extra === 'lance' ? 1080 : 760, .07, 'square', .05,
+           extra === 'plasma' ? 150 : extra === 'lance' ? 640 : 300);
+      break;
+    case 'kill': tone(430, .13, 'triangle', .085, 120); noise(.1, .05, 1900); break;
+    case 'boss': tone(190, .32, 'sawtooth', .1, 60); noise(.28, .09, 900); break;
+    case 'hit': noise(.06, .045, 2600); break;
+    case 'pickup': tone(660, .09, 'sine', .085, 880); tone(880, .13, 'sine', .075, 1320, .07); break;
+    case 'damage': tone(220, .24, 'sawtooth', .11, 70); noise(.18, .085, 700); break;
+    case 'shield': tone(900, .2, 'sine', .1, 1500); break;
+    case 'wave': tone(520, .12, 'triangle', .08, 780); tone(780, .18, 'triangle', .08, 1040, .11); break;
+    case 'over': tone(420, .3, 'triangle', .1, 180); tone(300, .35, 'triangle', .09, 120, .2);
+                 tone(200, .45, 'triangle', .08, 80, .4); break;
+    case 'ui': tone(620, .05, 'sine', .05, 760); break;
+  }
+}
+function startAmbient() {
+  if (!soundOn || !initAudio() || ambient) return;
+  try {
+    const g = audioCtx.createGain(); g.gain.value = .016;
+    const o1 = audioCtx.createOscillator(), o2 = audioCtx.createOscillator(), lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    o1.type = 'sine'; o1.frequency.value = 55;
+    o2.type = 'sine'; o2.frequency.value = 82.5;
+    lfo.frequency.value = .22; lfoGain.gain.value = .007;
+    lfo.connect(lfoGain); lfoGain.connect(g.gain);
+    o1.connect(g); o2.connect(g); g.connect(masterGain);
+    o1.start(); o2.start(); lfo.start();
+    ambient = { o1, o2, lfo };
+  } catch (_) { /* audio opsional */ }
+}
+function stopAmbient() {
+  if (!ambient) return;
+  try { ambient.o1.stop(); ambient.o2.stop(); ambient.lfo.stop(); } catch (_) {}
+  ambient = null;
+}
+function toggleSound() {
+  soundOn = !soundOn;
+  localStorage.setItem(SOUND_KEY, soundOn ? '1' : '0');
+  if (audioCtx && masterGain) masterGain.gain.setTargetAtTime(soundOn ? .5 : 0, audioCtx.currentTime, .02);
+  if (soundOn) { initAudio(); sfx('ui'); if (running && !over) startAmbient(); }
+  else stopAmbient();
+  $('btnSound').textContent = soundOn ? '🔊 Suara' : '🔇 Bisu';
+}
+$('btnSound').addEventListener('click', toggleSound);
+document.addEventListener('pointerdown', () => { if (soundOn) initAudio(); });
+
 /* ===================== AUTH ===================== */
 let authMode = 'login';
 function setAuthMode(mode) {
@@ -573,11 +722,16 @@ function renderEquip() {
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.checked = equip.has(row.item_code);
-    cb.addEventListener('change', () => cb.checked ? equip.add(row.item_code) : equip.delete(row.item_code));
+    cb.addEventListener('change', () => {
+      cb.checked ? equip.add(row.item_code) : equip.delete(row.item_code);
+      sfx('ui');
+      renderLoadoutSummary();
+    });
     label.appendChild(cb);
     label.appendChild(document.createTextNode(`${row.name} (${row.quantity})`));
     box.appendChild(label);
   });
+  renderLoadoutSummary();
 }
 async function renderShop() {
   try {
@@ -753,6 +907,15 @@ let keys = { left: false, right: false, fire: false, pointerX: null };
 let firingSide = 1; // peluru satu-laras bergantian dari sayap kiri/kanan
 let ship = { x: W / 2, y: H - 60, w: 38, h: 40, vx: 0 };
 let cooldown = 0, lastTime = 0, startedAt = 0, shake = 0;
+let buffs = { rapid: 0, surge: 0, shield: 0 };
+let toastTimer = 0;
+const DROP_INFO = {
+  repair: { label: '+1 NYAWA', color: '#4ade80', icon: '💚' },
+  rapid:  { label: 'RAPID FIRE', color: '#38e8ff', icon: '⚡' },
+  shield: { label: 'SHIELD AKTIF', color: '#8af7ff', icon: '🛡️' },
+  surge:  { label: 'SURGE · BOLA API ×1.5', color: '#ff9f43', icon: '🔥' },
+  coin:   { label: '+200 SKOR', color: '#ffd166', icon: '🪙' }
+};
 
 /* ---- LOADOUT: MODEL PESAWAT & SENJATA ---- */
 const SHIP_KEY = 'sf_ship', WEAPON_KEY = 'sf_weapon', SHIP_OWNED_KEY = 'sf_ships';
@@ -800,6 +963,35 @@ function unlockShip(id) {
   ownedShips.add(id);
   localStorage.setItem(SHIP_OWNED_KEY, JSON.stringify([...ownedShips]));
 }
+function statBar(label, value, max, text) {
+  const pct = Math.max(3, Math.min(100, Math.round(value / max * 100)));
+  return `<div class="statline"><span>${label}</span><div class="statbar"><i style="width:${pct}%"></i></div><em>${text}</em></div>`;
+}
+function renderLoadoutSummary() {
+  const m = SHIP_MODELS[selectedShip], w = WEAPONS[selectedWeapon];
+  const dmg = w.dmg * m.dmgMult, rate = w.shots / w.cd;
+  const gears = equip.size
+    ? [...equip].map(c => (inventory.find(i => i.item_code === c) || {}).name || c).join(' · ')
+    : 'Tidak ada item dipakai';
+  const box = $('loadoutSummary');
+  box.style.setProperty('--accent', m.accent);
+  box.innerHTML = `
+    <div class="preview-ship">
+      <div class="preview-icon">${m.icon}</div>
+      <div class="preview-meta">
+        <b>${m.name}</b>
+        <small>${m.desc}</small>
+        <div class="equipped-note">🎒 ${esc(gears)}</div>
+      </div>
+    </div>
+    <div class="loadout-stats">
+      ${statBar('KECEPATAN', m.speed, 430, m.speed + ' u/s')}
+      ${statBar('DAMAGE', dmg, 4, '×' + dmg.toFixed(1))}
+      ${statBar('FIRE RATE', rate, 8, rate.toFixed(1) + '/s')}
+      ${statBar('AGILITAS', 2 - m.hitbox, 1.3, Math.round((2 - m.hitbox) * 100) + '%')}
+      <div class="statline"><span>DPS</span><div></div><em>${Math.round(dmg * rate)} /detik</em></div>
+    </div>`;
+}
 function renderLoadout() {
   const shipBox = $('shipBox'), weaponBox = $('weaponBox');
   shipBox.innerHTML = '';
@@ -808,7 +1000,10 @@ function renderLoadout() {
     const b = document.createElement('button');
     b.className = 'loadout-card' + (id === selectedShip ? ' active' : '') + (owned ? '' : ' locked');
     b.style.setProperty('--accent', m.accent);
-    b.innerHTML = `<b>${owned ? m.icon : '🔒'} ${m.name}</b><span>${owned ? m.desc : `Beli di Shop · ${m.price} koin`}</span>`;
+    b.innerHTML = owned
+      ? `<b>${m.icon} ${m.name}</b><span>${m.desc}</span>
+         <div class="tags"><span class="tag">SPD ${m.speed}</span><span class="tag hot">DMG ×${m.dmgMult}</span><span class="tag">${Math.round(m.scale * 100)}% UKURAN</span></div>`
+      : `<b>🔒 ${m.name}</b><span>Beli di Shop · ${m.price} koin</span>`;
     b.addEventListener('click', () => {
       if (!owned) {
         showPanel('shopPanel');
@@ -825,16 +1020,18 @@ function renderLoadout() {
     const b = document.createElement('button');
     b.className = 'loadout-card' + (id === selectedWeapon ? ' active' : '');
     b.style.setProperty('--accent', w.color);
-    b.innerHTML = `<b>${w.icon} ${w.name}</b><span>${w.desc}</span>`;
+    b.innerHTML = `<b>${w.icon} ${w.name}</b><span>${w.desc}</span>
+      <div class="tags"><span class="tag">${w.shots} TEMBAKAN</span><span class="tag hot">DMG ${w.dmg}</span><span class="tag">${(1 / w.cd).toFixed(1)}/s</span></div>`;
     b.addEventListener('click', () => {
       selectedWeapon = id;
       localStorage.setItem(WEAPON_KEY, id);
+      sfx('ui');
       renderLoadout();
-      $('hudWeapon').textContent = w.name.split(' ')[0];
     });
     weaponBox.appendChild(b);
   });
   $('hudWeapon').textContent = WEAPONS[selectedWeapon].name.split(' ')[0];
+  renderLoadoutSummary();
 }
 
 class LCG {
@@ -882,9 +1079,14 @@ function resetGame() {
   keys.left = keys.right = keys.fire = false;
   keys.pointerX = null;
   cooldown = 0; paused = false; over = false; shake = 0;
+  buffs = { rapid: 0, surge: 0, shield: 0 };
+  $('gameToast').classList.remove('show');
   startedAt = performance.now();
   clearDynamic();
   spawnWave();
+  initAudio();
+  startAmbient();
+  sfx('wave');
   updateHUD();
   $('hudSeed').textContent = session.seed;
   $('hudStatus').textContent = session.rapid_active ? 'LIVE · RAPID' : 'LIVE';
@@ -894,6 +1096,22 @@ function updateHUD() {
   $('hudWave').textContent = wave;
   $('hudLives').textContent = lives;
   $('hudCombo').textContent = combo;
+  updateBuffHUD();
+}
+function updateBuffHUD() {
+  const parts = [];
+  if (buffs.rapid > 0) parts.push('⚡' + Math.ceil(buffs.rapid) + 's');
+  if (buffs.shield > 0) parts.push('🛡️' + buffs.shield);
+  if (buffs.surge > 0) parts.push('🔥' + Math.ceil(buffs.surge) + 's');
+  $('hudBuff').textContent = parts.join(' ') || '—';
+}
+function showToast(text, color) {
+  const el = $('gameToast');
+  el.textContent = text;
+  el.style.color = color || '#ffd166';
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1100);
 }
 function burst(x, y, color, n = 16) {
   const col = new THREE.Color(color);
@@ -921,8 +1139,9 @@ function wingGunOffset(side) {
 function fireWeapon() {
   const w = WEAPONS[selectedWeapon] || WEAPONS.pulse;
   const stats = SHIP_MODELS[selectedShip] || SHIP_MODELS.vanguard;
-  const dmg = w.dmg * (stats.dmgMult || 1);
-  const fireScale = stats.fireScale || 1;
+  const surge = buffs.surge > 0 ? 1.5 : 1;
+  const dmg = w.dmg * (stats.dmgMult || 1) * surge;
+  const fireScale = (stats.fireScale || 1) * (surge > 1 ? 1.18 : 1);
   for (let s = 0; s < w.shots; s++) {
     const t = w.shots === 1 ? 0 : (s / (w.shots - 1) - .5);
     const side = w.shots === 2 ? (s ? 1 : -1)
@@ -947,7 +1166,8 @@ function fireWeapon() {
     bullets.push(b);
   }
   burst(ship.x, ship.y - 26, '#ff9f43', 3);
-  cooldown = w.cd * (session.rapid_active ? .6 : 1);
+  cooldown = w.cd * (session.rapid_active ? .6 : 1) * (buffs.rapid > 0 ? .55 : 1);
+  sfx('shoot', selectedWeapon);
 }
 function killEnemy(index) {
   const e = enemies[index];
@@ -956,11 +1176,15 @@ function killEnemy(index) {
   kills++;
   const base = e.type === 'boss' ? 300 : e.type === 'raider' ? 80 : 50;
   score += base + wave * 5 + combo * 10;
-  burst(e.x, e.y, e.type === 'boss' ? '#ffd166' : '#38e8ff', e.type === 'boss' ? 34 : 16);
+  burst(e.x, e.y, e.type === 'boss' ? '#ffd166' : '#ff9f43', e.type === 'boss' ? 34 : 16);
   if (e.mesh) dynamic.remove(e.mesh);
-  if (Math.random() < .14) {
-    const d = { x: e.x, y: e.y, w: 20, h: 20, type: Math.random() < .5 ? 'repair' : 'coin', mesh: null };
-    d.mesh = makeDrop(d.type);
+  sfx(e.type === 'boss' ? 'boss' : 'kill');
+  if (Math.random() < .2) {
+    const roll = Math.random();
+    const type = roll < .22 ? 'repair' : roll < .46 ? 'rapid'
+      : roll < .68 ? 'shield' : roll < .84 ? 'surge' : 'coin';
+    const d = { x: e.x, y: e.y, w: 22, h: 22, type, mesh: null };
+    d.mesh = makeDrop(type);
     dynamic.add(d.mesh);
     drops.push(d);
   }
@@ -968,16 +1192,28 @@ function killEnemy(index) {
   updateHUD();
 }
 function hitPlayer() {
+  if (buffs.shield > 0) {
+    buffs.shield--;
+    shake = 4;
+    burst(ship.x, ship.y, '#8af7ff', 22);
+    showToast('🛡️ SHIELD MENYERAP SERANGAN', '#8af7ff');
+    sfx('shield');
+    updateBuffHUD();
+    return;
+  }
   lives--;
   combo = 0;
   shake = 10;
   burst(ship.x, ship.y, '#ff5c5c', 26);
+  sfx('damage');
   updateHUD();
   if (lives <= 0) finishRun();
 }
 function update(dt) {
   const stats = SHIP_MODELS[selectedShip] || SHIP_MODELS.vanguard;
   const speed = stats.speed;
+  if (buffs.rapid > 0) buffs.rapid = Math.max(0, buffs.rapid - dt);
+  if (buffs.surge > 0) buffs.surge = Math.max(0, buffs.surge - dt);
   const prevX = ship.x;
   if (keys.pointerX !== null) {
     // Geser jari: pesawat mengikuti posisi jari dengan gerak halus.
@@ -1012,7 +1248,8 @@ function update(dt) {
       if (b.hit.has(e) || !rectHit(e, b)) continue;
       b.hit.add(e);
       e.hp -= b.dmg;
-      burst(b.x, e.y, WEAPONS[selectedWeapon].color, 5);
+      burst(b.x, e.y, '#ff9f43', 5);
+      sfx('hit');
       if (e.mesh && e.mesh.userData.bar) e.mesh.userData.bar.scale.x = Math.max(0, e.hp / e.maxHp);
       if (b.pierce > 0) b.pierce--;
       else { dynamic.remove(b.mesh); bullets.splice(j, 1); }
@@ -1022,14 +1259,22 @@ function update(dt) {
 
   drops.forEach(d => { d.y += 110 * dt; });
   for (let i = drops.length - 1; i >= 0; i--) {
-    if (rectHit(drops[i], ship)) {
-      if (drops[i].type === 'repair') { lives++; burst(ship.x, ship.y, '#4ade80'); }
-      else { score += 200; burst(ship.x, ship.y, '#ffd166'); }
-      dynamic.remove(drops[i].mesh);
+    const d = drops[i];
+    if (rectHit(d, ship)) {
+      const info = DROP_INFO[d.type] || DROP_INFO.coin;
+      if (d.type === 'repair') lives = Math.min(6, lives + 1);
+      else if (d.type === 'rapid') buffs.rapid = Math.min(12, buffs.rapid + 6);
+      else if (d.type === 'shield') buffs.shield = Math.min(2, buffs.shield + 1);
+      else if (d.type === 'surge') buffs.surge = Math.min(12, buffs.surge + 6);
+      else score += 200;
+      burst(ship.x, ship.y, info.color, 18);
+      showToast(info.icon + ' ' + info.label, info.color);
+      sfx('pickup');
+      dynamic.remove(d.mesh);
       drops.splice(i, 1);
       updateHUD();
-    } else if (drops[i].y > H + 20) {
-      dynamic.remove(drops[i].mesh);
+    } else if (d.y > H + 20) {
+      dynamic.remove(d.mesh);
       drops.splice(i, 1);
     }
   }
@@ -1042,8 +1287,11 @@ function update(dt) {
     score += wave * 100;
     wave++;
     spawnWave();
+    sfx('wave');
+    showToast('🌌 SEKTOR ' + String(wave).padStart(2, '0'), '#38e8ff');
     updateHUD();
   }
+  updateBuffHUD();
 }
 
 /* ===================== THREE.JS 3D ===================== */
@@ -1248,6 +1496,9 @@ scene.add(new THREE.Points(dustGeo, new THREE.PointsMaterial({
 const GEO = {
   bullet: new THREE.SphereGeometry(.32, 8, 6),
   drop: new THREE.BoxGeometry(1.1, 1.1, 1.1),
+  rapid: new THREE.ConeGeometry(.7, 1.5, 6),
+  shield: new THREE.IcosahedronGeometry(.78, 0),
+  surge: new THREE.OctahedronGeometry(.85, 0),
   scout: new THREE.OctahedronGeometry(1.25, 0),
   raider: new THREE.TetrahedronGeometry(1.6, 0),
   boss: new THREE.IcosahedronGeometry(2.3, 0)
@@ -1256,6 +1507,9 @@ const MAT = {
   bullet: new THREE.MeshBasicMaterial({ color: 0xffd166 }),
   repair: new THREE.MeshStandardMaterial({ color: 0x4ade80, emissive: 0x1f9d55, emissiveIntensity: .8 }),
   coin: new THREE.MeshStandardMaterial({ color: 0xffd166, emissive: 0xb07b12, emissiveIntensity: .8 }),
+  rapid: new THREE.MeshStandardMaterial({ color: 0x38e8ff, emissive: 0x158ba8, emissiveIntensity: 1 }),
+  shield: new THREE.MeshStandardMaterial({ color: 0x8af7ff, emissive: 0x2c93b5, emissiveIntensity: 1 }),
+  surge: new THREE.MeshStandardMaterial({ color: 0xff7a1a, emissive: 0xd14a06, emissiveIntensity: 1 }),
   scout: new THREE.MeshStandardMaterial({ color: 0xa66bff, emissive: 0x5b2bb0, emissiveIntensity: .7, flatShading: true, metalness: .5 }),
   raider: new THREE.MeshStandardMaterial({ color: 0xff9f43, emissive: 0xa34a0b, emissiveIntensity: .7, flatShading: true, metalness: .5 }),
   boss: new THREE.MeshStandardMaterial({ color: 0xff4fa3, emissive: 0x9b1258, emissiveIntensity: .9, flatShading: true, metalness: .6 })
@@ -1801,8 +2055,20 @@ function makeEnemyMesh(type) {
   return g;
 }
 function makeDrop(type) {
-  const m = new THREE.Mesh(GEO.drop, type === 'repair' ? MAT.repair : MAT.coin);
-  return m;
+  const info = DROP_INFO[type] || DROP_INFO.coin;
+  const g = new THREE.Group();
+  const shape = GEO[type] || GEO.drop;
+  const core = new THREE.Mesh(shape, MAT[type] || MAT.coin);
+  g.add(core);
+  if (!LOW_POWER) {
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: getShipGlowTexture(), color: info.color, transparent: true, opacity: .6,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    }));
+    halo.scale.set(2.6, 2.6, 1);
+    g.add(halo);
+  }
+  return g;
 }
 function clearDynamic() {
   while (dynamic.children.length) dynamic.remove(dynamic.children[0]);
@@ -2072,6 +2338,9 @@ $('btnStart').addEventListener('click', async () => {
 
 async function finishRun() {
   over = true;
+  stopAmbient();
+  sfx('over');
+  $('gameToast').classList.remove('show');
   const duration = Math.max(1, Math.round((performance.now() - startedAt) / 1000));
   try {
     const res = await api('/api/games/' + session.session_id + '/finish', {
@@ -2119,6 +2388,7 @@ document.addEventListener('keydown', e => {
     paused = !paused;
     $('hudStatus').textContent = paused ? 'PAUSE' : (session.rapid_active ? 'LIVE · RAPID' : 'LIVE');
   }
+  if (k === 'm') toggleSound();
 });
 document.addEventListener('keyup', e => {
   const k = e.key.toLowerCase();
@@ -2185,6 +2455,7 @@ document.addEventListener('fullscreenchange', resizeScene);
 
 /* ===================== INIT ===================== */
 (async function init() {
+  $('btnSound').textContent = soundOn ? '🔊 Suara' : '🔇 Bisu';
   renderLoadout();
   syncMeshes(0);
   drawMinimap();

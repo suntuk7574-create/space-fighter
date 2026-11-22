@@ -2,7 +2,7 @@
 
 Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQLAlchemy + PostgreSQL + Three.js**. Pemain mengendalikan spaceship dan mempertahankan orbit dari gelombang **kumbang alien**.
 
-> **Demo publik (sementara):** https://internal-patricia-nancy-designs.trycloudflare.com
+> **Demo publik (sementara):** https://applicants-rural-genres-subsequently.trycloudflare.com
 >
 > Link tunnel gratis bisa berubah/expire. Untuk menyalakan ulang: `.\scripts\start-demo.ps1`
 >
@@ -14,6 +14,9 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 - 6 spaceship futuristik dengan animasi 3D & **glow neon warna khas tiap pesawat**: **Vanguard** (biru), **Raptor** (oranye), **Phantom** (ungu), plus premium **SPECTRE** (mini & paling lincah, mint), **NOVA** (sayap sweep + inti emas), dan **TITAN** (kapaltempur besar, 4 mesin, hijau). Bilah sayap tajam, **meriam + kilat moncong di ujung sayap kiri/kanan**, lampu navigasi berkedip, api mesin, aura energi, dan jejak plasma makin terang saat pesawat bergerak. Senjata satu laras menyala bergantian kiri/kanan; Twin Blaster menyala dari dua sayap sekaligus; Nova Scatter menyebar dari kedua sisi. Premium dibeli di Shop dengan koin.
 - 5 senjata dengan perilaku berbeda, semuanya kini berupa **bola api** (inti putih + ekor oranye + halo): **Pulse Cannon**, **Twin Blaster**, **Ion Lance** (tembus 3 musuh), **Nova Scatter** (5 bola api), **Plasma Core** (damage 2). Pesawat premium membuat bola api lebih besar dan lebih sakit: **SPECTRE ×1.4**, **NOVA ×1.7**, **TITAN ×2**.
 - Musuh kumbang alien: **Scarab**, **Stag Beetle**, dan **Rhino Beetle** (boss tiap wave ke-5).
+- **Power-up jatuh dari alien**: 💚 Repair (+1 nyawa, maks 6), ⚡ Rapid Fire (cooldown ×0.55 selama 6 detik), 🛡️ Shield (menyerap 1–2 serangan), 🔥 Surge (bola api ×1.5 + lebih besar selama 6 detik), dan 🪙 Bonus skor +200. Status aktif tampil di HUD.
+- **Suara game sintetis** pakai Web Audio API (tembakan, ledakan, pickup, damage, shield, fanfare sektor, musik ambien). Tanpa file audio eksternal; bisa dibisu lewat tombol 🔊 atau tombol `M`.
+- **Menu loadout lebih rapi**: preview pesawat + stat (kecepatan, damage, fire rate, agilitas, DPS), tag stat di tiap kartu pesawat/senjata, dan daftar item yang dipakai.
 - **Seed harian** deterministik (SHA-256 + LCG) sehingga pola spawn sama untuk semua pemain.
 - Akun, koin, inventory, item, riwayat sesi, dan **leaderboard global** tersimpan di database relasional.
 - **Login pakai email + password** (email unik, username dibuat otomatis). Sesi tersimpan di browser → **auto-login**, tidak perlu login lagi saat membuka ulang link di perangkat yang sama.

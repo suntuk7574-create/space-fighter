@@ -12,13 +12,14 @@
 - Menembak musuh memberi poin; **combo** bertambah jika menembak terus-menerus dan reset saat terkena musuh / musuh kabur.
 - Ada 3 nyawa. Item **Pelindung** menambah 1 nyawa, **Rapid Fire** mempercepat tembakan.
 - Musuh berupa **kumbang alien**: `scout` (Scarab), `raider` (Stag Beetle), dan `boss` (Rhinoceros Beetle, muncul tiap wave ke-5).
-- Power-up acak: `repair` (+1 nyawa) dan `coin` (+200 skor).
+- Power-up acak (peluang 20% per kill): `repair` (+1 nyawa, maks 6), `rapid` (cooldown tembak ×0.55 selama 6 detik), `shield` (menyerap 1–2 serangan), `surge` (damage & ukuran bola api ×1.5 selama 6 detik), dan `coin` (+200 skor). Status aktif ditampilkan di HUD.
+- Suara game dihasilkan secara prosedural dengan **Web Audio API** (tembakan, ledakan, pickup, damage, shield, sektor baru, game over, dan ambien). Tidak ada file audio eksternal; tombol 🔊 / tombol `M` menyalakan atau mematikan suara.
 - Skor akhir dikirim ke backend, divalidasi, lalu masuk **leaderboard** dan memberi **koin**.
 - Akun memakai **email + password** (email unik, username otomatis jika tidak diisi). Setelah login pertama, ID sesi disimpan di `localStorage` sehingga **auto-login** saat link dibuka ulang di perangkat yang sama.
 
 **Fitur pembeda:** **Seed harian**. Backend membuat seed dari tanggal memakai SHA-256; frontend memakai LCG dengan seed yang sama sehingga pola spawn musuh reproducible untuk semua pemain pada hari itu.
 
-**Tampilan:** game dirender dalam **3D menggunakan Three.js**. Medan perangnya adalah **arena orbit luar angkasa** (cincin pertahanan melingkar, nebula berlapis, planet bercincin + satelit, sabuk asteroid dan kristal bercahaya, bintang berkedip, serta debu kosmik), bukan bidang grid kotak. **Musuh berupa kumbang alien** yang dibuat prosedural: cangkang, sayap keras (elytra), enam kaki, antena, mata majemuk bercahaya, taring dan tanduk. **Pesawat tetap spaceship futuristik dengan glow neon khas tiap model** (bilah sayap tajam, meriam kiri/kanan lengkap dengan kilat moncong saat menembak, lampu navigasi, api mesin, aura, dan jejak plasma dinamis) dan 6 model (Vanguard, Raptor, Phantom + premium SPECTRE mini, NOVA sayap lebar, TITAN kapaltempur besar yang dibeli di Shop) dan 5 pilihan senjata berupa **bola api** (Pulse Cannon, Twin Blaster, Ion Lance yang menembus musuh, Nova Scatter 5 bola api, dan Plasma Core damage 2). Pesawat premium memberi pengali damage bola api: SPECTRE ×1.4, NOVA ×1.7, TITAN ×2. Pilihan loadout disimpan di `localStorage`. Radar/sektor mini-map ada di sudut kanan atas. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
+**Tampilan:** game dirender dalam **3D menggunakan Three.js**. Medan perangnya adalah **arena orbit luar angkasa** (cincin pertahanan melingkar, nebula berlapis, planet bercincin + satelit, sabuk asteroid dan kristal bercahaya, bintang berkedip, serta debu kosmik), bukan bidang grid kotak. **Musuh berupa kumbang alien** yang dibuat prosedural: cangkang, sayap keras (elytra), enam kaki, antena, mata majemuk bercahaya, taring dan tanduk. **Pesawat tetap spaceship futuristik dengan glow neon khas tiap model** (bilah sayap tajam, meriam kiri/kanan lengkap dengan kilat moncong saat menembak, lampu navigasi, api mesin, aura, dan jejak plasma dinamis) dan 6 model (Vanguard, Raptor, Phantom + premium SPECTRE mini, NOVA sayap lebar, TITAN kapaltempur besar yang dibeli di Shop) dan 5 pilihan senjata berupa **bola api** (Pulse Cannon, Twin Blaster, Ion Lance yang menembus musuh, Nova Scatter 5 bola api, dan Plasma Core damage 2). Pesawat premium memberi pengali damage bola api: SPECTRE ×1.4, NOVA ×1.7, TITAN ×2. Pilihan loadout disimpan di `localStorage`. **Menu loadout menampilkan preview pesawat, bar statistik (kecepatan, damage, fire rate, agilitas, DPS), tag stat di tiap kartu, dan item yang sedang dipakai.** Radar/sektor mini-map ada di sudut kanan atas. Versi 2D canvas tetap disimpan sebagai `frontend/index-2d.html` sebagai cadangan.
 
 ---
 
@@ -32,6 +33,8 @@
 | Combo scoring | `score_for_kill()` | `poin = base + wave*5 + combo*10`. |
 | Collision detection (AABB sederhana) | `frontend/index.html` | Cek tabrakan peluru–musuh dan musuh–pesawat; mendukung damage dan peluru penembus (`pierce`). |
 | Weapon spread & pierce | `fireWeapon()` | Menyebarkan 5 peluru (Nova Scatter), menembak 2 sejajar (Twin), atau menembus 3 musuh (Ion Lance). |
+| Buff timer & power-up | `update()`, `hitPlayer()` | Menghitung sisa Rapid/Surge, menyerap serangan dengan Shield, dan menerapkan efek saat drop dikumpulkan. |
+| Sintesis audio | `tone()`, `noise()`, `sfx()` | Membuat efek suara dan ambien dari oscillator Web Audio tanpa berkas eksternal. |
 | Validasi skor | `validate_run()` | Membatasi skor tidak wajar berdasarkan kill, wave, combo, dan durasi. |
 | Fisher-Yates (cadangan di proyek Fruit Door) | `fruitdoor/backend/app/game_logic.py` | Referensi pengacakan unbiased. |
 
