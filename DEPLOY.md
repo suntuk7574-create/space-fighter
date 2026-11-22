@@ -132,6 +132,16 @@ Lalu teman di WiFi yang sama buka `http://IP-LAPTOP-KAMU:8000`. Firewall Windows
 
 ## 7. Catatan untuk “banyak orang”
 
+**Perkiraan kapasitas (bukan batas hard-code):**
+
+| Setup | Pemain aktif bersamaan | Catatan |
+|---|---|---|
+| Demo laptop + PostgreSQL portabel + Cloudflare quick tunnel | ±30–50 | Aman untuk demo kelas. Render 3D berjalan di browser tiap pemain; backend hanya request pendek (login, start, finish, leaderboard). Tunnel bisa mati saat laptop restart & URL berubah. |
+| Render gratis + Neon gratis | ±20–40 | Web service gratis **sleep** setelah idle; cold start bisa ±1 menit. Cocok untuk demo, bukan SLA. |
+| Render/ Railway berbayar + Neon berbayar + 2–4 worker | 100–500+ | Tambah connection pooling (`PgBouncer`) dan indexing kalau skor/riwayat membesar. |
+
+Kenapa demo laptop masih ringan: arena Three.js, partikel, dan audio dihitung di perangkat pemain. Database hanya menyimpan akun, inventory, sesi, dan skor; request bersifat singkat. Beban-naik terjadi terutama saat banyak orang **login bersamaan** karena PBKDF2 120.000 round dipakai untuk hash password.
+
 - Paket **gratis** Render/Neon biasanya **sleep** saat tidak dipakai dan punya batas koneksi. Untuk puluhan pemain simultan, naikkan ke paket berbayar.
 - Jangan simpan password di kode/`.env` yang ter-commit. Memakai Environment Variable di dashboard host sudah aman.
 - Kalau ada ribuan pemain, tambahkan indexing/indeks dan connection pooling (mis. PgBouncer). Untuk tugas kuliah, konfigurasi saat ini sudah memadai.
