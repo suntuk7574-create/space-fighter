@@ -16,16 +16,24 @@
 
 ## 1. Cara aman mendapat hak admin (laptop)
 
-Hak admin **tidak bisa diberikan oleh AI**. Pilih salah satu:
+Hak admin **tidak bisa diberikan oleh AI**. Cek dulu nama akun Windows kamu dengan:
+
+```powershell
+whoami
+```
+
+> Di laptop ini hasilnya `desktop-3htok8v\desktop`, dan akun **`desktop` sudah termasuk grup Administrators**. Nama GitHub `suntuk7574-create` **bukan** akun Windows, jadi tidak dipakai di sini.
+
+Pilih salah satu:
 
 1. Login Windows memakai akun yang sudah termasuk grup **Administrators**, lalu jalankan PowerShell/Installer dengan **Run as administrator**.
-2. Minta admin laptop menambahkan akun kamu:
+2. Kalau belum masuk, minta admin laptop menambahkan akun:
    - Buka **Computer Management → Local Users and Groups → Groups → Administrators → Add**.
    - Atau dari PowerShell admin:
      ```powershell
-     net localgroup administrators "Zulkarnain" /add
+     net localgroup administrators "NAMA_AKUN_WINDOWS_KAMU" /add
      ```
-     (ganti nama akun; **hanya bisa dijalankan oleh admin yang sudah ada**).
+     (ganti dengan hasil `whoami`, bukan username GitHub; **hanya bisa dijalankan oleh admin yang sudah ada**).
 
 Setelah itu ikuti `INSTALL.md` dari langkah 2.
 
