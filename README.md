@@ -6,6 +6,8 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 >
 > Link tunnel gratis bisa berubah/expire. Untuk menyalakan ulang: `.\scripts\start-demo.ps1`
 >
+> **Link permanen (tidak berubah):** repo sudah punya `render.yaml`. Login Render dengan GitHub `suntuk7574-create`, pilih **New → Blueprint → repo `space-fighter`**, isi `DATABASE_URL` + kredensial admin, lalu Apply. Detail lengkap di `DEPLOY.md`.
+>
 > **Butuh internet?** Link publik di atas butuh internet. Kalau backend + PostgreSQL jalan di laptop sendiri, game bisa dibuka lewat `http://127.0.0.1:8000` tanpa internet (mode lokal). Akun/skor tetap tersimpan di DB lokal.
 >
 > **Kapasitas:** render 3D ada di browser masing-masing, server cuma menangani login/sesi/skor. Demo laptop ini nyaman untuk **±30–50 pemain aktif bersamaan** (bisa lebih kalau sebagian cuma melihat leaderboard). Tidak ada batas hard-code, tapi tunnel gratis bukan layanan permanen: mati saat laptop/restart dan URL bisa berubah. Untuk link stabil 24/7 + skala ratusan pemain, ikuti `DEPLOY.md` (Render + Neon).

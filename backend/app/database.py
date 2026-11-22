@@ -12,10 +12,19 @@ try:
 except ImportError:
     pass
 
-DATABASE_URL = os.getenv(
+_raw_url = os.getenv(
     "DATABASE_URL",
-    "postgresql+psycopg://postgres:postgres@localhost:5432/spacefighter",
+    "postgresql+pg8000://postgres:postgres@127.0.0.1:5432/spacefighter",
 )
+
+# Render/Neon biasanya memberi `postgresql://...`. Aplikasi memakai driver
+# pg8000 (murni Python), jadi normalkan di sini agar tidak perlu edit manual.
+if _raw_url.startswith("postgres://"):
+    DATABASE_URL = "postgresql+pg8000://" + _raw_url[len("postgres://") :]
+elif _raw_url.startswith("postgresql://"):
+    DATABASE_URL = "postgresql+pg8000://" + _raw_url[len("postgresql://") :]
+else:
+    DATABASE_URL = _raw_url
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, future=True)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)

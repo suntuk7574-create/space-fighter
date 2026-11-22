@@ -1,0 +1,32 @@
+# Deploy permanen Space Fighter ke Render.
+# Repo milik: https://github.com/suntuk7574-create/space-fighter
+# Cara: Render Dashboard → New → Blueprint → pilih repo ini → isi env saat diminta.
+services:
+  - type: web
+    name: space-fighter
+    runtime: python
+    repo: https://github.com/suntuk7574-create/space-fighter.git
+    branch: main
+    plan: free # ganti ke 0.5c-512mb kalau mau always-on tanpa sleep
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      # Isi di dashboard Render dengan connection string Neon/Supabase.
+      # Boleh pakai format postgresql://... karena backend otomatis
+      # mengubahnya ke driver pg8000.
+      - key: DATABASE_URL
+        sync: false
+
+      # Kredensial admin hanya kamu yang tahu; jangan ditulis di sini.
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_DISPLAY_NAME
+        value: Administrator
+      - key: ADMIN_SECRET
+        generateValue: true
+
+      - key: PYTHON_VERSION
+        value: "3.11"

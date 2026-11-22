@@ -41,17 +41,23 @@ Setelah itu ikuti `INSTALL.md` dari langkah 2.
 
 ---
 
-## 2. Siapkan repository GitHub
+## 2. Repository GitHub (sudah terpasang)
 
-Repo sudah di-init lokal dengan commit `a696c15`. Tambahkan remote (ganti URL milikmu):
+Remote repo sudah memakai akun **`suntuk7574-create`**, bukan nama lama:
+
+```powershell
+git remote -v
+# origin  https://github.com/suntuk7574-create/space-fighter.git
+```
+
+Untuk memastikan sudah ter-update:
 
 ```powershell
 cd "C:\Users\desktop\Documents\Default Project\space-fighter"
-git remote add origin https://github.com/USERNAME/space-fighter.git
-git push -u origin main
+git push origin main
 ```
 
-Kalau belum punya repo: buat di github.com → **New repository** → jangan centang README (biar kosong) → salin URL-nya.
+File `render.yaml` sudah disiapkan di root repo, jadi Render bisa langsung memakai repo ini.
 
 ---
 
@@ -60,43 +66,39 @@ Kalau belum punya repo: buat di github.com → **New repository** → jangan cen
 1. Buka https://neon.tech → daftar / Login dengan GitHub.
 2. **Create project** → nama bebas, region pilih yang dekat.
 3. Setelah jadi, buka **Connection Details** → salin connection string.
-4. Ubah menjadi format SQLAlchemy driver `pg8000` dan tambahkan SSL:
+4. Salin connection string apa adanya. Tidak perlu diubah manual: backend otomatis mengubah `postgresql://...` menjadi driver `pg8000`.
 
 ```
-DATABASE_URL=postgresql+pg8000://USER:PASSWORD@ep-xxx.region.aws.neon.tech/spacefighter?sslmode=require
+postgresql://USER:PASSWORD@ep-xxx.region.aws.neon.tech/spacefighter?sslmode=require
 ```
 
-> Ganti `postgres://` di awal dengan `postgresql+pg8000://`, lalu tambahkan `?sslmode=require` di akhir.
+> String di atas hanya contoh. Jangan pernah menaruhnya di `render.yaml` atau file yang ter-commit; isi lewat Environment Variable di dashboard Render.
 
 Alternatif: **Supabase** (Database → Connection string → URI) atau **ElephantSQL**.
 
 ---
 
-## 4. Deploy backend + frontend di Render
+## 4. Deploy backend + frontend di Render (URL tetap)
 
-1. Buka https://render.com → daftar / Login dengan GitHub.
-2. **New → Web Service** → pilih repo `space-fighter`.
-3. Isi:
-   - **Name:** `space-fighter`
-   - **Runtime:** `Python 3`
-   - **Build Command:**
-     ```
-     pip install -r backend/requirements.txt
-     ```
-   - **Start Command:**
-     ```
-     cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
-     ```
-4. Masuk tab **Environment** → **Add Environment Variable**:
-   - `DATABASE_URL` = string Neon dari langkah 3
-   - `PYTHON_VERSION` = `3.11` (atau versi yang tersedia; kode kompatibel)
-   - `FRONTEND_ORIGIN` → **kosongkan** karena frontend satu origin dengan API
-5. **Health Check Path:** `/health`
-6. Klik **Create Web Service**. Tunggu deploy selesai.
-7. Buka URL yang diberikan, misalnya:
+Cara paling cepat memakai file `render.yaml` yang sudah ada:
+
+1. Buka https://render.com → daftar / **Login dengan GitHub** (akun `suntuk7574-create`).
+2. **New → Blueprint** → pilih repo `space-fighter` → branch `main`.
+3. Render akan mendeteksi `render.yaml` otomatis. Saat diminta, isi Environment Variable:
+   - `DATABASE_URL` = connection string Neon dari langkah 3
+   - `ADMIN_USERNAME` = username admin pilihanmu
+   - `ADMIN_PASSWORD` = password admin pilihanmu
+   - `ADMIN_SECRET` sudah di-generate otomatis oleh Render
+4. Klik **Apply**. Tunggu deploy selesai (status `Live`).
+5. Buka URL permanen, misalnya:
    - `https://space-fighter.onrender.com/` → game
    - `https://space-fighter.onrender.com/docs` → dokumentasi API
-8. Bagikan URL itu ke teman/tim. Mereka bisa daftar akun dan skor masuk leaderboard yang sama.
+
+URL `onrender.com` **tidak berubah** walaupun laptop dimatikan atau kode di-push ulang. Setiap `git push` ke `main` otomatis redeploy.
+
+> Paket `free` di `render.yaml` membuat web service **sleep** setelah ±15 menit idle; buka pertama bisa ±1 menit. Kalau mau selalu hidup, ubah baris `plan: free` menjadi `plan: 0.5c-512mb` sebelum Apply.
+
+**Cara manual (kalau tidak mau Blueprint):** **New → Web Service** → pilih repo yang sama → isi Build Command `pip install -r backend/requirements.txt`, Start Command `cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT`, Health Check Path `/health`, lalu isi env variable seperti di atas. Hasilnya sama.
 
 ---
 
