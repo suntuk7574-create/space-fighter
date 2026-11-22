@@ -163,9 +163,15 @@
     position: absolute; left: 50%; top: 44%; z-index: 2; opacity: 0; pointer-events: none;
     transform: translate(-50%, -50%) scale(.88); transition: opacity .18s ease, transform .18s ease;
     font-weight: 900; font-size: clamp(14px, 2.4vw, 21px); letter-spacing: 1.4px;
-    text-shadow: 0 0 18px currentColor; white-space: nowrap;
+    text-shadow: 0 0 6px #fff, 0 0 20px currentColor, 0 0 42px currentColor;
+    white-space: nowrap;
   }
-  .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); animation: toastBeat 1.1s ease-out; }
+  @keyframes toastBeat {
+    0% { transform: translate(-50%, -50%) scale(.7); filter: brightness(1.8); }
+    35% { transform: translate(-50%, -50%) scale(1.12); }
+    100% { transform: translate(-50%, -50%) scale(1); filter: none; }
+  }
   button.icon-btn { background: rgba(9,18,44,.9); color: var(--text); border: 1px solid var(--line); box-shadow: none; }
 
   /* Shop pesawat + kontrol sentuh HP */
@@ -219,12 +225,46 @@
   @keyframes starDrift { to { background-position: 210px 240px, -310px 290px; } }
   .game-wrap { animation: frameGlow 4s ease-in-out infinite; }
   @keyframes frameGlow { 50% { box-shadow: 0 0 46px rgba(255,79,163,.18); } }
+  .game-wrap::before {
+    content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(ellipse at 50% 44%, transparent 42%, rgba(1,3,12,.58) 100%),
+      radial-gradient(circle at 10% 92%, rgba(255,79,163,.14), transparent 40%),
+      radial-gradient(circle at 90% 8%, rgba(56,232,255,.14), transparent 40%);
+  }
   .game-wrap::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
     background: repeating-linear-gradient(0deg, rgba(120,200,255,.035) 0 1px, transparent 1px 4px);
   }
+  .game-wrap.impact #scene { animation: hitFlash .34s ease-out; }
+  @keyframes hitFlash {
+    0% { filter: brightness(1.55) saturate(1.7) hue-rotate(-8deg); }
+    45% { filter: brightness(1.12) saturate(1.25); }
+    100% { filter: none; }
+  }
+  /* Pop skor / damage ala arcade, Number di-render DOM supaya ringan. */
+  .fx-float {
+    position: absolute; z-index: 4; pointer-events: none; white-space: nowrap;
+    font-weight: 900; font-size: 13px; letter-spacing: .6px;
+    color: #fff; text-shadow: 0 0 8px currentColor, 0 0 22px currentColor, 0 2px 3px #000;
+    animation: floatPop .78s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .fx-float.score { font-size: 16px; color: var(--gold); }
+  .fx-float.hit { font-size: 11px; color: #ffb347; }
+  .fx-float.combo { font-size: 18px; color: var(--pink); }
+  .fx-float.pickup { font-size: 14px; color: var(--cyan); }
+  .fx-float.hurt { font-size: 18px; color: var(--red); }
+  .fx-float.wave { font-size: 19px; color: #fff; letter-spacing: 2px; left: 50% !important; top: 24% !important; }
+  @keyframes floatPop {
+    0% { opacity: 0; transform: translate(-50%, 4px) scale(.6); }
+    22% { opacity: 1; transform: translate(-50%, -10px) scale(1.18); }
+    100% { opacity: 0; transform: translate(-50%, -62px) scale(.94); }
+  }
   .hud .box { background: linear-gradient(160deg, rgba(10,20,52,.94), rgba(5,10,28,.92)); }
   .hud .box b { text-shadow: 0 0 12px rgba(56,232,255,.5); }
+  .hud .box b.bump { display: inline-block; animation: scoreBump .3s ease-out; color: var(--gold); }
+  @keyframes scoreBump { 50% { transform: scale(1.35); text-shadow: 0 0 18px var(--gold); } }
+  .hud .box.hot { color: var(--gold); border-color: #6b5623; box-shadow: 0 0 18px rgba(255,209,102,.25); }
   .hud .box#hudStatus { color: var(--green); border-color: #1e6b45; }
 
   /* ===== HALAMAN LOGIN / DAFTAR ===== */
@@ -975,7 +1015,7 @@ let firingSide = 1; // peluru satu-laras bergantian dari sayap kiri/kanan
 let ship = { x: W / 2, y: H - 60, w: 38, h: 40, vx: 0 };
 let cooldown = 0, lastTime = 0, startedAt = 0, shake = 0;
 let buffs = { rapid: 0, surge: 0, shield: 0 };
-let toastTimer = 0;
+let toastTimer = 0, impactTimer = 0, lastHudScore = 0;
 const DROP_INFO = {
   repair: { label: '+1 NYAWA', color: '#4ade80', icon: '💚' },
   rapid:  { label: 'RAPID FIRE', color: '#38e8ff', icon: '⚡' },
@@ -1145,9 +1185,10 @@ function resetGame() {
   firingSide = 1;
   keys.left = keys.right = keys.fire = false;
   keys.pointerX = null;
-  cooldown = 0; paused = false; over = false; shake = 0;
+  cooldown = 0; paused = false; over = false; shake = 0; lastHudScore = 0;
   buffs = { rapid: 0, surge: 0, shield: 0 };
   $('gameToast').classList.remove('show');
+  $('gameWrap').querySelectorAll('.fx-float').forEach(el => el.remove());
   startedAt = performance.now();
   clearDynamic();
   spawnWave();
@@ -1160,9 +1201,11 @@ function resetGame() {
 }
 function updateHUD() {
   $('hudScore').textContent = score;
+  if (score !== lastHudScore) { pulseHud('hudScore'); lastHudScore = score; }
   $('hudWave').textContent = wave;
   $('hudLives').textContent = lives;
   $('hudCombo').textContent = combo;
+  $('hudCombo').parentElement.classList.toggle('hot', combo >= 5);
   updateBuffHUD();
 }
 function updateBuffHUD() {
@@ -1179,6 +1222,39 @@ function showToast(text, color) {
   el.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('show'), 1100);
+}
+/* Teks melayang & kilat layar: efek arcade tanpa menambah beban WebGL. */
+function floatText(text, x, y, cls = '') {
+  if (!running || over) return;
+  const wrap = $('gameWrap');
+  if (!wrap) return;
+  if (LOW_POWER && cls === 'hit' && Math.random() < .55) return;
+  const alive = wrap.querySelectorAll('.fx-float');
+  if (alive.length >= 16) alive[0].remove();
+  const el = document.createElement('div');
+  el.className = 'fx-float ' + cls;
+  el.textContent = text;
+  el.style.left = Math.max(7, Math.min(93, x / W * 100)) + '%';
+  el.style.top = Math.max(8, Math.min(92, y / H * 100)) + '%';
+  el.addEventListener('animationend', () => el.remove(), { once: true });
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+function flashImpact() {
+  const wrap = $('gameWrap');
+  if (!wrap) return;
+  wrap.classList.remove('impact');
+  void wrap.offsetWidth;
+  wrap.classList.add('impact');
+  clearTimeout(impactTimer);
+  impactTimer = setTimeout(() => wrap.classList.remove('impact'), 360);
+}
+function pulseHud(id) {
+  const el = $(id);
+  if (!el) return;
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
 }
 function burst(x, y, color, n = 16) {
   const col = new THREE.Color(color);
@@ -1242,8 +1318,16 @@ function killEnemy(index) {
   maxCombo = Math.max(maxCombo, combo);
   kills++;
   const base = e.type === 'boss' ? 300 : e.type === 'raider' ? 80 : 50;
-  score += base + wave * 5 + combo * 10;
-  burst(e.x, e.y, e.type === 'boss' ? '#ffd166' : '#ff9f43', e.type === 'boss' ? 34 : 16);
+  const gained = base + wave * 5 + combo * 10;
+  score += gained;
+  floatText('+' + gained, e.x, e.y - 12, 'score');
+  if (combo > 0 && combo % 5 === 0) {
+    floatText(combo + 'x COMBO!', ship.x, ship.y - 70, 'combo');
+    showToast('🔥 ' + combo + 'x COMBO!', '#ff4fa3');
+    sfx('pickup');
+  }
+  shake = Math.max(shake, e.type === 'boss' ? 8 : 3);
+  burst(e.x, e.y, e.type === 'boss' ? '#ffd166' : '#ff9f43', e.type === 'boss' ? 40 : 20);
   if (e.mesh) dynamic.remove(e.mesh);
   sfx(e.type === 'boss' ? 'boss' : 'kill');
   if (Math.random() < .2) {
@@ -1263,6 +1347,8 @@ function hitPlayer() {
     buffs.shield--;
     shake = 4;
     burst(ship.x, ship.y, '#8af7ff', 22);
+    floatText('🛡️ BLOCK', ship.x, ship.y - 36, 'pickup');
+    flashImpact();
     showToast('🛡️ SHIELD MENYERAP SERANGAN', '#8af7ff');
     sfx('shield');
     updateBuffHUD();
@@ -1271,7 +1357,9 @@ function hitPlayer() {
   lives--;
   combo = 0;
   shake = 10;
-  burst(ship.x, ship.y, '#ff5c5c', 26);
+  burst(ship.x, ship.y, '#ff5c5c', 30);
+  floatText('−1 ❤', ship.x, ship.y - 38, 'hurt');
+  flashImpact();
   sfx('damage');
   updateHUD();
   if (lives <= 0) finishRun();
@@ -1315,7 +1403,8 @@ function update(dt) {
       if (b.hit.has(e) || !rectHit(e, b)) continue;
       b.hit.add(e);
       e.hp -= b.dmg;
-      burst(b.x, e.y, '#ff9f43', 5);
+      burst(b.x, e.y, '#ff9f43', 6);
+      floatText('−' + b.dmg, e.x, e.y - 18, 'hit');
       sfx('hit');
       if (e.mesh && e.mesh.userData.bar) e.mesh.userData.bar.scale.x = Math.max(0, e.hp / e.maxHp);
       if (b.pierce > 0) b.pierce--;
@@ -1335,6 +1424,7 @@ function update(dt) {
       else if (d.type === 'surge') buffs.surge = Math.min(12, buffs.surge + 6);
       else score += 200;
       burst(ship.x, ship.y, info.color, 18);
+      floatText(info.icon + ' ' + info.label, ship.x, ship.y - 52, 'pickup');
       showToast(info.icon + ' ' + info.label, info.color);
       sfx('pickup');
       dynamic.remove(d.mesh);
@@ -1355,6 +1445,7 @@ function update(dt) {
     wave++;
     spawnWave();
     sfx('wave');
+    floatText('SEKTOR ' + String(wave).padStart(2, '0'), W / 2, H * .32, 'wave');
     showToast('🌌 SEKTOR ' + String(wave).padStart(2, '0'), '#38e8ff');
     updateHUD();
   }
@@ -2334,6 +2425,8 @@ function syncMeshes(ts) {
     if (dustPos[i * 3 + 1] > 26) dustPos[i * 3 + 1] = -10;
   }
   dustGeo.attributes.position.needsUpdate = true;
+  keyLight.intensity = 1.12 + Math.sin(ts * .0017) * .12;
+  if (!LOW_POWER) rimLight.intensity = 1.45 + Math.sin(ts * .0022) * .35;
   arena.rotation.y += .0004;
   planet.rotation.y += .0008;
   planetRing.rotation.z += .0006;

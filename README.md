@@ -21,9 +21,10 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 - Akun, koin, inventory, item, riwayat sesi, dan **leaderboard global** tersimpan di database relasional.
 - **Login pakai email + password** (email unik, username dibuat otomatis). Sesi tersimpan di browser → **auto-login**, tidak perlu login lagi saat membuka ulang link di perangkat yang sama.
 - Radar/mini-map sektor, efek partikel, glow, dan kontrol: keyboard (A/D, ←/→, SPACE), tombol sentuh ◀ ▶ 🔫 di HP, atau geser jari untuk mengarahkan pesawat. Tampilan game melebar penuh di layar HP + tombol layar penuh.
+- **Tampilan lebih epik & arcade**: vignette sinematik + scanline halus, cahaya pinggir yang berdenyut (desktop), kilat layar saat kena damage, angka skor/damage melayang, `COMBO!` besar tiap 5 kill, HUD skor berdenyut, dan pop sektor tiap wave. Semua efek ringan: teks dibatasi maksimal 16 dan tetap dipangkas di mode hemat daya.
 - **Mode hemat daya otomatis di HP**: pixel ratio diturunkan, antialias dimatikan, jumlah bintang/debu/asteroid/jejak plasma dipangkas, dan api mesin disederhanakan. Kualitas tetap tinggi di desktop.
 - Halaman login/daftar bergaya landing page (orbit animasi, tab Login/Daftar) dan HUD game yang dipoles.
-- **Admin console khusus satu akun**: tombol/admin login **disembunyikan dari pemain biasa**. Pemilik membuka pintu masuk lewat `?admin=1` sekali, lalu token HMAC 24 jam membuat tombol 🛡️ Admin muncul di perangkatnya saja.
+- **Admin console khusus satu akun**: tombol/admin login **disembunyikan dari pemain biasa**. Pemilik membuka pintu masuk lewat parameter portal pribadi sekali, lalu token HMAC 24 jam membuat tombol 🛡️ Admin muncul di perangkatnya saja.
 - **Hak blokir admin**: dari tabel Pemain, admin bisa **Blokir / Buka blokir** akun. Pemain diblokir tidak bisa login, mulai sesi, beli item, atau masuk leaderboard; skor terakhirnya tetap ditolak. **Peringkat lawan tetap bisa dilihat semua pemain** lewat Leaderboard.
 
 ## 🛡️ Akses admin (khusus pemilik game)
