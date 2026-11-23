@@ -2,7 +2,7 @@
 
 Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQLAlchemy + PostgreSQL + Three.js**. Pemain mengendalikan spaceship dan mempertahankan orbit dari gelombang **kumbang alien**.
 
-> **Link publik tetap:** https://suntuk-space-fighter.loca.lt
+> **Link publik tetap:** https://suntuk-space-fighter-2.loca.lt
 >
 > Menyalakan ulang: `.\scripts\start-fixed-link.ps1` (tanpa akun, tanpa kartu). URL tidak berubah walaupun laptop di-restart. Detail + cara mengatasi halaman "Tunnel website ahead": `PANDUAN-LINK-MENETAP.md`.
 >

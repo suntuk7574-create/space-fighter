@@ -3,7 +3,7 @@
 Link yang dipakai sekarang:
 
 ```text
-https://suntuk-space-fighter.loca.lt
+https://suntuk-space-fighter-2.loca.lt
 ```
 
 Alamat ini **tetap**, tidak berubah walaupun tunnel dimatikan atau laptop di-restart. Tidak perlu daftar akun, tidak perlu kartu kredit, tidak perlu token.
@@ -25,13 +25,13 @@ Script otomatis:
 1. menyiapkan localtunnel (kalau belum ada),
 2. menyalakan PostgreSQL kalau mati,
 3. menyalakan backend FastAPI kalau mati,
-4. membuka tunnel dengan subdomain tetap `suntuk-space-fighter`.
+4. membuka tunnel dengan subdomain tetap `suntuk-space-fighter-2`.
 
 Kalau berhasil akan muncul:
 
 ```text
-LINK TETAP KAMU: https://suntuk-space-fighter.loca.lt
-your url is: https://suntuk-space-fighter.loca.lt
+LINK TETAP KAMU: https://suntuk-space-fighter-2.loca.lt
+your url is: https://suntuk-space-fighter-2.loca.lt
 ```
 
 **Jangan tutup jendela PowerShell** selama game dipakai.
@@ -42,7 +42,7 @@ your url is: https://suntuk-space-fighter.loca.lt
 
 Karena localtunnel gratis, pengunjung bisa melihat halaman keamanan seperti ini:
 
-> **You are about to visit: https://suntuk-space-fighter.loca.lt**
+> **You are about to visit: https://suntuk-space-fighter-2.loca.lt**
 > To continue, enter the IP shown above.
 
 Cara mengatasinya:
@@ -59,9 +59,9 @@ Itu hanya **sekali per IP selama 7 hari**. Bukan error game, bukan virus, dan ti
 
 | Alamat | Harapan |
 |---|---|
-| `https://suntuk-space-fighter.loca.lt/health` | tampil `{"status":"ok","game":"Space Fighter"}` |
-| `https://suntuk-space-fighter.loca.lt/` | game Space Fighter muncul |
-| `https://suntuk-space-fighter.loca.lt/docs` | halaman dokumentasi API |
+| `https://suntuk-space-fighter-2.loca.lt/health` | tampil `{"status":"ok","game":"Space Fighter"}` |
+| `https://suntuk-space-fighter-2.loca.lt/` | game Space Fighter muncul |
+| `https://suntuk-space-fighter-2.loca.lt/docs` | halaman dokumentasi API |
 
 Lalu coba daftar akun di dua browser/HP berbeda, main sebentar, dan buka **Leaderboard**. Kedua skor harus muncul di papan peringkat yang sama.
 
@@ -81,14 +81,14 @@ cd "C:\Users\desktop\Documents\Default Project\space-fighter"
 Kalau subdomain suatu hari terpakai orang lain, ganti lewat parameter:
 
 ```powershell
-.\scripts\start-fixed-link.ps1 -Subdomain suntuk-space-fighter-2
+.\scripts\start-fixed-link.ps1 -Subdomain suntuk-space-fighter-3
 ```
 
 ---
 
 ## Bagian 5 — Masuk sebagai admin (khusus kamu)
 
-1. Buka `https://suntuk-space-fighter.loca.lt/?admin=1`
+1. Buka `https://suntuk-space-fighter-2.loca.lt/?admin=1`
 2. Muncul tombol **🛡️ Masuk sebagai Admin**.
 3. Masukkan username + password admin yang ada di `backend/.env` kamu.
 4. Jangan bagikan `?admin=1` ke orang lain.
@@ -101,7 +101,7 @@ Kalau subdomain suatu hari terpakai orang lain, ganti lewat parameter:
 |---|---|
 | Halaman "Tunnel website ahead" | Ketik IP yang tertera → Continue. Wajar, sekali per 7 hari. |
 | URL mati | Laptop mati/terminal tertutup. Jalankan `start-fixed-link.ps1` lagi. |
-| Subdomain terpakai | Pakai `-Subdomain suntuk-space-fighter-2`. |
+| Subdomain terpakai | Pakai `-Subdomain suntuk-space-fighter-3`. |
 | Port 8000 dipakai | Script otomatis memakai backend yang sudah jalan. |
 | Ingin laptop boleh mati | Itu butuh cloud berbayar / host gratis dengan kuota kecil. Lihat `DEPLOY.md`. |
 

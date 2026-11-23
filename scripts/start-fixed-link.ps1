@@ -1,5 +1,5 @@
 # Menyalakan demo dengan URL TETAP tanpa akun/kartu kredit (localtunnel).
-# URL: https://suntuk-space-fighter.loca.lt
+# URL: https://suntuk-space-fighter-2.loca.lt
 #
 # Cara pakai:
 #   .\scripts\start-fixed-link.ps1
@@ -13,7 +13,7 @@
 
 param(
   [int]$Port = 8000,
-  [string]$Subdomain = 'suntuk-space-fighter'
+  [string]$Subdomain = 'suntuk-space-fighter-2'
 )
 
 $root = Split-Path -Parent $PSScriptRoot
