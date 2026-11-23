@@ -1,0 +1,10 @@
+.git
+.gitignore
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+backend/.env
+backend/tests
+*.log
+*.tmp
+.DS_Store

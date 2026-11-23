@@ -8,7 +8,9 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 >
 > **Pasang di HP (PWA):** buka link di Chrome → menu ⋮ → **Add to Home Screen / Install app**. Ikon dan layar fullscreen sudah disiapkan (`manifest.json`, `sw.js`, `frontend/icons/`). Cara lengkap ada di `PANDUAN-LINK-MENETAP.md` bagian "Pasang di HP".
 >
-> Link lama Cloudflare (`trycloudflare.com`) sudah tidak dipakai. Alternatif ngrok ada di `scripts/start-fixed-link-ngrok.ps1`; cloud 24/7 ada di `DEPLOY.md` + `render.yaml` (butuh kartu untuk verifikasi).
+> **Tanpa bergantung laptop (cloud gratis, tanpa kartu):** ikuti `PANDUAN-SNAPDEPLOY.md` — Neon (DB) + SnapDeploy (app). URL permanen `*.containers.snapdeploy.app`; gratis tidur setelah ±15 menit idle dan bangun ±1 menit saat dibuka. Mau 24/7 tanpa menunggu: Sprint Pack $1 sekali (24 jam) atau Always-On $12/bulan.
+>
+> Link lama Cloudflare (`trycloudflare.com`) sudah tidak dipakai. Alternatif ngrok ada di `scripts/start-fixed-link-ngrok.ps1`; opsi Render ada di `DEPLOY.md` + `render.yaml` (kartu hanya verifikasi, tapi bisa dilewati dengan SnapDeploy).
 >
 > **Butuh internet?** Link publik di atas butuh internet. Kalau backend + PostgreSQL jalan di laptop sendiri, game bisa dibuka lewat `http://127.0.0.1:8000` tanpa internet (mode lokal). Akun/skor tetap tersimpan di DB lokal.
 >
