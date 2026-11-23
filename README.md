@@ -28,7 +28,7 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 - **Seed harian** deterministik (SHA-256 + LCG) sehingga pola spawn sama untuk semua pemain.
 - Akun, koin, inventory, item, riwayat sesi, dan **leaderboard global** tersimpan di database relasional.
 - **Login pakai email + password** (email unik, username dibuat otomatis). Sesi tersimpan di browser → **auto-login**, tidak perlu login lagi saat membuka ulang link di perangkat yang sama.
-- Radar/mini-map sektor, efek partikel, glow, dan kontrol: keyboard (A/D, ←/→, SPACE), tombol sentuh ◀ ▶ 🔫 di HP, atau geser jari untuk mengarahkan pesawat. Tampilan game melebar penuh di layar HP + tombol layar penuh.
+- Radar/mini-map sektor, efek partikel, glow, dan **kontrol bebas sesuai pemain**: geser jari ke mana saja di layar → pesawat mengikuti bebas ke atas/bawah/kiri/kanan; tombol sentuh ◀ ▲ ▼ ▶ untuk gerak arah dan 🔫 untuk menembak (geser = gerak saja, tidak otomatis tembak). Keyboard: A/D/←/→ + W/S/↑/↓ + SPACE. Tombol layar penuh ikut membawa tombol jari di HP.
 - **Tampilan lebih epik & arcade**: vignette sinematik + scanline halus, cahaya pinggir yang berdenyut (desktop), kilat layar saat kena damage, angka skor/damage melayang, `COMBO!` besar tiap 5 kill, HUD skor berdenyut, dan pop sektor tiap wave. Semua efek ringan: teks dibatasi maksimal 16 dan tetap dipangkas di mode hemat daya.
 - **Mode hemat daya otomatis di HP**: pixel ratio diturunkan, antialias dimatikan, jumlah bintang/debu/asteroid/jejak plasma dipangkas, dan api mesin disederhanakan. Kualitas tetap tinggi di desktop.
 - Halaman login/daftar bergaya landing page (orbit animasi, tab Login/Daftar) dan HUD game yang dipoles.
