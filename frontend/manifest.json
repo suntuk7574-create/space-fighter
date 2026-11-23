@@ -1,0 +1,27 @@
+{
+  "id": "/",
+  "name": "Space Fighter: Orbit Defense",
+  "short_name": "Space Fighter",
+  "description": "Game shoot-'em-up 3D: pertahankan orbit dari kumbang alien.",
+  "lang": "id",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#02040f",
+  "theme_color": "#38e8ff",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

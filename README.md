@@ -6,6 +6,8 @@ Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQ
 >
 > Menyalakan ulang: `.\scripts\start-fixed-link.ps1` (tanpa akun, tanpa kartu). URL tidak berubah walaupun laptop di-restart. Detail + cara mengatasi halaman "Tunnel website ahead": `PANDUAN-LINK-MENETAP.md`.
 >
+> **Pasang di HP (PWA):** buka link di Chrome → menu ⋮ → **Add to Home Screen / Install app**. Ikon dan layar fullscreen sudah disiapkan (`manifest.json`, `sw.js`, `frontend/icons/`). Cara lengkap ada di `PANDUAN-LINK-MENETAP.md` bagian "Pasang di HP".
+>
 > Link lama Cloudflare (`trycloudflare.com`) sudah tidak dipakai. Alternatif ngrok ada di `scripts/start-fixed-link-ngrok.ps1`; cloud 24/7 ada di `DEPLOY.md` + `render.yaml` (butuh kartu untuk verifikasi).
 >
 > **Butuh internet?** Link publik di atas butuh internet. Kalau backend + PostgreSQL jalan di laptop sendiri, game bisa dibuka lewat `http://127.0.0.1:8000` tanpa internet (mode lokal). Akun/skor tetap tersimpan di DB lokal.

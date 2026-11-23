@@ -67,7 +67,29 @@ Lalu coba daftar akun di dua browser/HP berbeda, main sebentar, dan buka **Leade
 
 ---
 
-## Bagian 4 — Pakai lagi setelah laptop restart
+## Bagian 4 — Pasang di HP (PWA, tanpa APK)
+
+Game sudah dilengkapi **PWA**, jadi tidak perlu APK dan tidak perlu Android Studio.
+
+**Android / Chrome:**
+1. Buka `https://suntuk-space-fighter-2.loca.lt` di Chrome.
+2. Kalau muncul halaman "Tunnel website ahead", ketik IP yang tertera → **Continue**.
+3. Ketuk menu **⋮** (kanan atas).
+4. Pilih **Add to Home Screen** atau **Install app**.
+5. Beri nama bebas → **Add / Install**.
+6. Ikon **Space Fighter** muncul di layar utama. Buka seperti aplikasi biasa (fullscreen).
+
+**iPhone / Safari:**
+1. Buka link di Safari, ketuk tombol **Share** (kotak dengan panah atas).
+2. Pilih **Add to Home Screen** → **Add**.
+
+Yang di-cache service worker hanya tampilan game (HTML, Three.js, ikon). **API, skor, dan leaderboard tidak di-cache**, jadi selalu data terbaru.
+
+Catatan: tetap butuh internet dan laptop harus menyala, karena backend + database ada di sini. Kalau game diubah, naikkan nomor versi di `frontend/sw.js` baris `const CACHE = 'space-fighter-shell-v1'` menjadi `v2`, supaya HP mengunduh tampilan terbaru.
+
+---
+
+## Bagian 5 — Pakai lagi setelah laptop restart
 
 Cukup jalankan ulang:
 
@@ -86,7 +108,7 @@ Kalau subdomain suatu hari terpakai orang lain, ganti lewat parameter:
 
 ---
 
-## Bagian 5 — Masuk sebagai admin (khusus kamu)
+## Bagian 6 — Masuk sebagai admin (khusus kamu)
 
 1. Buka `https://suntuk-space-fighter-2.loca.lt/?admin=1`
 2. Muncul tombol **🛡️ Masuk sebagai Admin**.
@@ -95,7 +117,7 @@ Kalau subdomain suatu hari terpakai orang lain, ganti lewat parameter:
 
 ---
 
-## Bagian 6 — Kalau ada masalah
+## Bagian 7 — Kalau ada masalah
 
 | Gejala | Apa yang dilakukan |
 |---|---|
@@ -103,6 +125,8 @@ Kalau subdomain suatu hari terpakai orang lain, ganti lewat parameter:
 | URL mati | Laptop mati/terminal tertutup. Jalankan `start-fixed-link.ps1` lagi. |
 | Subdomain terpakai | Pakai `-Subdomain suntuk-space-fighter-3`. |
 | Port 8000 dipakai | Script otomatis memakai backend yang sudah jalan. |
+| PWA tidak muncul tombol Install | Pastikan halaman IP sudah dilewati dan Chrome/Safari versi terbaru. Menu ⋮ → **Add to Home Screen** tetap bisa dipakai. |
+| Tampilan game lama setelah update | Naikkan versi `CACHE` di `frontend/sw.js` (`v1` → `v2`), lalu muat ulang. |
 | Ingin laptop boleh mati | Itu butuh cloud berbayar / host gratis dengan kuota kecil. Lihat `DEPLOY.md`. |
 
 ---
