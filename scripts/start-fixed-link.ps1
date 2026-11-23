@@ -1,36 +1,42 @@
-# Menyalakan demo dengan URL TETAP memakai ngrok free dev domain.
-# Tidak butuh kartu kredit. URL tidak berubah walaupun tunnel dijalankan ulang.
+# Menyalakan demo dengan URL TETAP tanpa akun/kartu kredit (localtunnel).
+# URL: https://suntuk-space-fighter.loca.lt
 #
-# Cara pakai pertama kali:
-#   1. Daftar/gratis login di https://dashboard.ngrok.com/signup
-#   2. Buka https://dashboard.ngrok.com/domains -> salin dev domain
-#      (bentuknya seperti abc123xyz.ngrok-free.dev)
-#   3. Buka https://dashboard.ngrok.com/get-started/your-authtoken -> salin authtoken
-#   4. Jalankan: .\scripts\start-fixed-link.ps1
-#   5. Saat diminta, tempel authtoken dan dev domain. Keduanya disimpan lokal
-#      di komputer ini, TIDAK masuk ke repo/git.
+# Cara pakai:
+#   .\scripts\start-fixed-link.ps1
 #
-# Cara pakai berikutnya: cukup .\scripts\start-fixed-link.ps1
+# Tidak perlu daftar, tidak perlu token. Kalau laptop restart, jalankan lagi
+# script ini dan URL tetap sama.
 #
-# Catatan: paket free ngrok menampilkan halaman peringatan "Visit Site" sekali
-# per browser. Itu wajar, tinggal diklik. Laptop harus tetap menyala karena
-# backend + database jalan di sini.
+# Catatan: pengunjung mungkin melihat halaman "Tunnel website ahead" sekali
+# per IP (7 hari). Ketik IP yang tertera di halaman itu, lalu klik Continue.
+# Itu mekanisme keamanan localtunnel gratis, bukan error game.
 
-param([int]$Port = 8000)
+param(
+  [int]$Port = 8000,
+  [string]$Subdomain = 'suntuk-space-fighter'
+)
 
 $root = Split-Path -Parent $PSScriptRoot
 $tmp = Join-Path $env:LOCALAPPDATA 'Temp\opencode'
 $pgBin = Join-Path $tmp 'pgsql19\pgsql\bin'
 $pgData = Join-Path $tmp 'pgdata'
 $backend = Join-Path $root 'backend'
-$ngrok = Join-Path $tmp 'ngrok\ngrok.exe'
-$domainFile = Join-Path $tmp 'ngrok-domain.txt'
+$nodeDir = Join-Path $tmp 'node22\node-v22.14.0-win-x64'
+$ltPrefix = Join-Path $tmp 'localtunnel'
+$lt = Join-Path $ltPrefix 'node_modules\localtunnel\bin\lt.js'
 
-if (-not (Test-Path $ngrok)) {
-  throw "ngrok belum ada di $ngrok. Jalankan ulang setelah mengunduh ngrok untuk Windows."
+if (-not (Test-Path (Join-Path $nodeDir 'node.exe'))) {
+  throw "Node portable belum ada di $nodeDir."
 }
 
-# 1. Pastikan PostgreSQL portabel berjalan.
+# 1. Pastikan localtunnel terpasang di folder sementara (bukan di repo).
+if (-not (Test-Path $lt)) {
+  Write-Host "Mengunduh localtunnel..."
+  $env:PATH = $nodeDir + ';' + $env:PATH
+  & (Join-Path $nodeDir 'npm.cmd') install localtunnel --prefix $ltPrefix --no-audit --no-fund
+}
+
+# 2. Pastikan PostgreSQL portabel berjalan.
 if (-not (Test-Path (Join-Path $pgBin 'pg_ctl.exe'))) {
   throw "PostgreSQL portabel belum tersedia di $pgBin."
 }
@@ -40,7 +46,7 @@ if ($LASTEXITCODE -ne 0) {
   & (Join-Path $pgBin 'pg_ctl.exe') -D $pgData -o "-p 5432 -h 127.0.0.1" -l "$pgData\server.log" -w start
 }
 
-# 2. Pastikan backend berjalan.
+# 3. Pastikan backend berjalan.
 $listen = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
 if (-not $listen) {
   Write-Host "Menyalakan backend di http://127.0.0.1:$Port ..."
@@ -48,34 +54,17 @@ if (-not $listen) {
   Start-Process -FilePath $python `
     -ArgumentList "-m uvicorn app.main:app --host 127.0.0.1 --port $Port" `
     -WorkingDirectory $backend -WindowStyle Hidden
+  Start-Sleep -Seconds 4
 }
 
-# 3. Simpan authtoken + dev domain lokal sekali saja.
-if (-not (Test-Path $domainFile)) {
-  $secureToken = Read-Host "Tempel ngrok authtoken kamu" -AsSecureString
-  $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureToken)
-  $token = [Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
-  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
-  if ([string]::IsNullOrWhiteSpace($token)) { throw "Authtoken tidak boleh kosong." }
-  & $ngrok config add-authtoken $token
-  $token = $null
-
-  $domain = Read-Host "Tempel dev domain (contoh abc123xyz.ngrok-free.dev)"
-  $domain = $domain.Trim().TrimEnd('/')
-  if ($domain -match '^https?://') { $domain = ($domain -replace '^https?://', '').TrimEnd('/') }
-  if ([string]::IsNullOrWhiteSpace($domain)) { throw "Dev domain tidak boleh kosong." }
-  Set-Content -Path $domainFile -Value $domain -Encoding UTF8
-} else {
-  $domain = (Get-Content $domainFile -Raw).Trim()
-}
-
-$url = "https://$domain"
+$url = "https://$Subdomain.loca.lt"
 Write-Host ""
 Write-Host "LINK TETAP KAMU: $url"
 Write-Host "Cek kesehatan:   $url/health"
-Write-Host "Kalau muncul halaman 'Visit Site', klik saja (wajar di paket gratis)."
+Write-Host "Kalau muncul halaman 'Tunnel website ahead', ketik IP yang tertera lalu Continue."
 Write-Host "Jangan tutup jendela ini selama game dipakai."
 Write-Host ""
 
-# 4. Buka tunnel dengan domain tetap.
-& $ngrok http $Port --url $url
+# 4. Buka tunnel dengan subdomain tetap.
+$env:PATH = $nodeDir + ';' + $env:PATH
+& (Join-Path $nodeDir 'node.exe') $lt --port $Port --subdomain $Subdomain

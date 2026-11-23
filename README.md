@@ -2,13 +2,11 @@
 
 Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQLAlchemy + PostgreSQL + Three.js**. Pemain mengendalikan spaceship dan mempertahankan orbit dari gelombang **kumbang alien**.
 
-> **Demo publik (sementara):** https://applicants-rural-genres-subsequently.trycloudflare.com
+> **Link publik tetap:** https://suntuk-space-fighter.loca.lt
 >
-> Link tunnel Cloudflare bisa berubah/expire. Untuk menyalakan ulang: `.\scripts\start-demo.ps1`
+> Menyalakan ulang: `.\scripts\start-fixed-link.ps1` (tanpa akun, tanpa kartu). URL tidak berubah walaupun laptop di-restart. Detail + cara mengatasi halaman "Tunnel website ahead": `PANDUAN-LINK-MENETAP.md`.
 >
-> **Link tetap tanpa kartu kredit:** daftar gratis di ngrok, lalu jalankan `.\scripts\start-fixed-link.ps1`. Detail lengkap di `PANDUAN-LINK-MENETAP.md`. URL tidak berubah walaupun dijalankan ulang (laptop tetap harus menyala).
->
-> **Alternatif cloud 24/7:** `render.yaml` + `DEPLOY.md` (Render/Neon, butuh kartu untuk verifikasi).
+> Link lama Cloudflare (`trycloudflare.com`) sudah tidak dipakai. Alternatif ngrok ada di `scripts/start-fixed-link-ngrok.ps1`; cloud 24/7 ada di `DEPLOY.md` + `render.yaml` (butuh kartu untuk verifikasi).
 >
 > **Butuh internet?** Link publik di atas butuh internet. Kalau backend + PostgreSQL jalan di laptop sendiri, game bisa dibuka lewat `http://127.0.0.1:8000` tanpa internet (mode lokal). Akun/skor tetap tersimpan di DB lokal.
 >

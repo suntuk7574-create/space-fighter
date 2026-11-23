@@ -1,82 +1,73 @@
-# Panduan Link Tetap (Tanpa Kartu Kredit)
+# Panduan Link Tetap (Tanpa Akun, Tanpa Kartu)
 
-Kita pakai **ngrok free dev domain**. Gratis, tidak minta kartu, dan **URL-nya tidak berubah** walaupun tunnel dimatikan/dinyalakan ulang.
+Link yang dipakai sekarang:
 
-Konsekuensinya: karena backend + PostgreSQL jalan di laptop kamu, **laptop harus tetap menyala** saat game dipakai. Kalau laptop mati, link ikut mati (tapi alamatnya tetap sama saat dinyalakan lagi).
+```text
+https://suntuk-space-fighter.loca.lt
+```
 
----
+Alamat ini **tetap**, tidak berubah walaupun tunnel dimatikan atau laptop di-restart. Tidak perlu daftar akun, tidak perlu kartu kredit, tidak perlu token.
 
-## Bagian 1 — Buat akun ngrok gratis
-
-1. Buka **https://dashboard.ngrok.com/signup**
-2. Daftar pakai email (atau GitHub/Google). **Tidak perlu kartu kredit.**
-3. Setelah masuk, buka **https://dashboard.ngrok.com/domains**
-4. Di situ ada **dev domain** otomatis, bentuknya seperti:
-
-   ```text
-   abc123xyz.ngrok-free.dev
-   ```
-
-   Salin domain itu.
-
-5. Buka **https://dashboard.ngrok.com/get-started/your-authtoken**
-6. Salin **authtoken**-mu.
-
-> Jangan kirim authtoken ke chat. Nanti kamu tempel langsung di terminal laptop sendiri.
+Konsekuensinya: backend + PostgreSQL jalan di laptop, jadi **laptop harus menyala** saat game dipakai.
 
 ---
 
-## Bagian 2 — Jalankan script link tetap
+## Bagian 1 — Cara menyalakan
 
-Di PowerShell, dari folder proyek:
+Buka PowerShell di folder proyek:
 
 ```powershell
 cd "C:\Users\desktop\Documents\Default Project\space-fighter"
 .\scripts\start-fixed-link.ps1
 ```
 
-Saat diminta:
+Script otomatis:
+1. menyiapkan localtunnel (kalau belum ada),
+2. menyalakan PostgreSQL kalau mati,
+3. menyalakan backend FastAPI kalau mati,
+4. membuka tunnel dengan subdomain tetap `suntuk-space-fighter`.
 
-1. Tempel **authtoken** → tekan Enter.
-2. Tempel **dev domain** (tanpa `https://`) → tekan Enter.
-
-Script akan:
-- menyalakan PostgreSQL kalau belum jalan,
-- menyalakan backend FastAPI,
-- membuka ngrok dengan domain tetap kamu.
-
-Authtoken dan domain **disimpan lokal** di komputer kamu, tidak masuk ke Git.
-
----
-
-## Bagian 3 — Link yang dibagikan
-
-Setelah script jalan, akan tampil seperti:
+Kalau berhasil akan muncul:
 
 ```text
-LINK TETAP KAMU: https://abc123xyz.ngrok-free.dev
-Cek kesehatan:   https://abc123xyz.ngrok-free.dev/health
+LINK TETAP KAMU: https://suntuk-space-fighter.loca.lt
+your url is: https://suntuk-space-fighter.loca.lt
 ```
 
-Bagikan URL `https://abc123xyz.ngrok-free.dev` itu ke teman/dosen.
-
-**Catatan paket gratis:** pengunjung pertama kali akan melihat halaman peringatan ngrok bertuliskan **Visit Site / Open Website**. Itu wajar — tinggal diklik sekali per browser. Setelah itu game langsung terbuka.
+**Jangan tutup jendela PowerShell** selama game dipakai.
 
 ---
 
-## Bagian 4 — Cek bahwa berhasil
+## Bagian 2 — Halaman "Tunnel website ahead" (wajar)
+
+Karena localtunnel gratis, pengunjung bisa melihat halaman keamanan seperti ini:
+
+> **You are about to visit: https://suntuk-space-fighter.loca.lt**
+> To continue, enter the IP shown above.
+
+Cara mengatasinya:
+
+1. Lihat angka IP yang tertera di halaman itu (contoh `210.87.90.62`).
+2. Ketik di kolom **IP Address**.
+3. Klik **Continue**.
+
+Itu hanya **sekali per IP selama 7 hari**. Bukan error game, bukan virus, dan tidak ada biaya.
+
+---
+
+## Bagian 3 — Cek bahwa berhasil
 
 | Alamat | Harapan |
 |---|---|
-| `https://<domain-mu>.ngrok-free.dev/health` | tampil `{"status":"ok","game":"Space Fighter"}` |
-| `https://<domain-mu>.ngrok-free.dev/` | game Space Fighter muncul |
-| `https://<domain-mu>.ngrok-free.dev/docs` | halaman dokumentasi API |
+| `https://suntuk-space-fighter.loca.lt/health` | tampil `{"status":"ok","game":"Space Fighter"}` |
+| `https://suntuk-space-fighter.loca.lt/` | game Space Fighter muncul |
+| `https://suntuk-space-fighter.loca.lt/docs` | halaman dokumentasi API |
 
 Lalu coba daftar akun di dua browser/HP berbeda, main sebentar, dan buka **Leaderboard**. Kedua skor harus muncul di papan peringkat yang sama.
 
 ---
 
-## Bagian 5 — Pakai lagi besok
+## Bagian 4 — Pakai lagi setelah laptop restart
 
 Cukup jalankan ulang:
 
@@ -85,33 +76,39 @@ cd "C:\Users\desktop\Documents\Default Project\space-fighter"
 .\scripts\start-fixed-link.ps1
 ```
 
-Authtoken + domain sudah tersimpan, jadi tidak ditanya lagi. **URL-nya tetap sama.**
+**URL-nya tetap sama.** Tidak ada token yang perlu dimasukkan.
 
-Kalau laptop restart, jalankan script ini lagi. Jangan pakai `start-demo.ps1` kalau mau URL yang tetap.
+Kalau subdomain suatu hari terpakai orang lain, ganti lewat parameter:
+
+```powershell
+.\scripts\start-fixed-link.ps1 -Subdomain suntuk-space-fighter-2
+```
 
 ---
 
-## Bagian 6 — Masuk sebagai admin (khusus kamu)
+## Bagian 5 — Masuk sebagai admin (khusus kamu)
 
-1. Buka `https://<domain-mu>.ngrok-free.dev/?admin=1`
+1. Buka `https://suntuk-space-fighter.loca.lt/?admin=1`
 2. Muncul tombol **🛡️ Masuk sebagai Admin**.
-3. Masukkan username + password admin yang ada di file `backend/.env` kamu.
+3. Masukkan username + password admin yang ada di `backend/.env` kamu.
 4. Jangan bagikan `?admin=1` ke orang lain.
 
 ---
 
-## Bagian 7 — Kalau ada masalah
+## Bagian 6 — Kalau ada masalah
 
 | Gejala | Apa yang dilakukan |
 |---|---|
-| Muncul halaman "Visit Site" | Klik saja. Wajar di paket gratis ngrok. |
-| URL mati saat dibuka | Laptop mungkin mati/terminal tertutup. Jalankan `start-fixed-link.ps1` lagi. |
-| Error "authentication failed" | Authtoken salah. Hapus file `%LOCALAPPDATA%\Temp\opencode\ngrok-domain.txt`, lalu jalankan script lagi dan tempel ulang token. |
-| Error port 8000 dipakai | Script otomatis memakai backend yang sudah jalan. Kalau tetap error, tutup terminal lama lalu jalankan ulang. |
-| Ingin laptop boleh mati | Itu butuh cloud berbayar / host cloud gratis dengan kuota kecil. Lihat `DEPLOY.md`. |
+| Halaman "Tunnel website ahead" | Ketik IP yang tertera → Continue. Wajar, sekali per 7 hari. |
+| URL mati | Laptop mati/terminal tertutup. Jalankan `start-fixed-link.ps1` lagi. |
+| Subdomain terpakai | Pakai `-Subdomain suntuk-space-fighter-2`. |
+| Port 8000 dipakai | Script otomatis memakai backend yang sudah jalan. |
+| Ingin laptop boleh mati | Itu butuh cloud berbayar / host gratis dengan kuota kecil. Lihat `DEPLOY.md`. |
 
 ---
 
-## Setelah selesai
+## Alternatif (opsional)
 
-Kirim URL `ngrok-free.dev`-mu ke saya. Nanti saya ganti link di `README.md`, cek `/health`, lalu commit + push.
+Kalau nanti kamu punya akun ngrok dan ingin halaman peringatan yang lebih sederhana, ada `scripts/start-fixed-link-ngrok.ps1`. Itu butuh authtoken + dev domain, tapi tetap gratis dan tanpa kartu.
+
+Untuk link cloud 24/7 (laptop boleh mati), lihat `DEPLOY.md` + `render.yaml` (Render minta kartu untuk verifikasi, biaya tetap $0 di plan free).
