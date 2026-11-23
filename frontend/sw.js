@@ -1,7 +1,7 @@
 /* Service worker PWA Space Fighter.
    Hanya menyimpan file tampilan (shell). Request /api, /health, /docs, dan
    /openapi.json sengaja tidak di-cache supaya skor/leaderboard selalu baru. */
-const CACHE = 'space-fighter-shell-v3';
+const CACHE = 'space-fighter-shell-v4';
 
 const SHELL = [
   '/',

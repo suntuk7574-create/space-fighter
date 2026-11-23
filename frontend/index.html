@@ -1463,11 +1463,18 @@ function update(dt) {
 
 /* ===================== THREE.JS 3D ===================== */
 /* Mode hemat daya otomatis di HP / layar sempit / perangkat inti sedikit. */
-const LOW_POWER = (window.matchMedia && (
+const IS_TOUCH = (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;
+// `?low=1` hanya untuk uji coba; HP otomatis memakai mode ini lewat IS_TOUCH.
+const FORCE_LOW = new URLSearchParams(location.search).has('low');
+const LOW_POWER = FORCE_LOW || IS_TOUCH || (window.matchMedia && (
   window.matchMedia('(pointer: coarse)').matches ||
   window.matchMedia('(max-width: 700px)').matches
 )) || (navigator.hardwareConcurrency || 8) <= 4;
-const PIXEL_CAP = LOW_POWER ? 1 : 1.5;
+// Turunkan resolusi render sedikit: pengorbanan tajam kecil, FPS jauh lebih stabil.
+const PIXEL_CAP = LOW_POWER ? .85 : 1.5;
+const FRAME_MS = LOW_POWER ? 1000 / 30 : 0;    // HP dibatasi 30 FPS (hemat baterai)
+const MINI_MS = LOW_POWER ? 100 : 0;           // radar digambar 10×/detik, bukan tiap frame
+let lastRender = 0, lastMini = 0;
 
 const sceneCanvas = $('scene');
 const renderer = new THREE.WebGLRenderer({ canvas: sceneCanvas, antialias: !LOW_POWER });
@@ -1602,7 +1609,7 @@ scene.add(arenaGlow);
 scene.add(arena);
 
 /* Lintang dengan kedalaman + kedip */
-const starCount = LOW_POWER ? 620 : 1100;
+const starCount = LOW_POWER ? 380 : 1100;
 const starPos = new Float32Array(starCount * 3);
 const starSpeed = new Float32Array(starCount);
 for (let i = 0; i < starCount; i++) {
@@ -1620,7 +1627,7 @@ scene.add(starField);
 
 /* Sabuk asteroid + kristal bercahaya melayang */
 const rocks = new THREE.Group();
-for (let i = 0; i < (LOW_POWER ? 18 : 34); i++) {
+for (let i = 0; i < (LOW_POWER ? 12 : 34); i++) {
   const r = new THREE.Mesh(
     new THREE.IcosahedronGeometry(.5 + Math.random() * 1.8, 0),
     new THREE.MeshStandardMaterial({ color: 0x334466, roughness: 1, flatShading: true })
@@ -1630,7 +1637,7 @@ for (let i = 0; i < (LOW_POWER ? 18 : 34); i++) {
   r.userData.spin = (Math.random() - .5) * .4;
   rocks.add(r);
 }
-for (let i = 0; i < (LOW_POWER ? 6 : 12); i++) {
+for (let i = 0; i < (LOW_POWER ? 4 : 12); i++) {
   const c = new THREE.Mesh(
     new THREE.OctahedronGeometry(.35 + Math.random() * .7, 0),
     new THREE.MeshStandardMaterial({
@@ -1646,7 +1653,7 @@ for (let i = 0; i < (LOW_POWER ? 6 : 12); i++) {
 scene.add(rocks);
 
 /* Debu kosmik yang melayang naik */
-const dustCount = LOW_POWER ? 120 : 240;
+const dustCount = LOW_POWER ? 70 : 240;
 const dustPos = new Float32Array(dustCount * 3);
 for (let i = 0; i < dustCount; i++) {
   dustPos[i * 3] = (Math.random() - .5) * 90;
@@ -2241,7 +2248,7 @@ function clearDynamic() {
   while (dynamic.children.length) dynamic.remove(dynamic.children[0]);
 }
 
-const PMAX = LOW_POWER ? 260 : 560;
+const PMAX = LOW_POWER ? 160 : 560;
 const pPos = new Float32Array(PMAX * 3);
 const pCol = new Float32Array(PMAX * 3);
 const pGeo = new THREE.BufferGeometry();
@@ -2254,7 +2261,7 @@ const pPoints = new THREE.Points(pGeo, new THREE.PointsMaterial({
 scene.add(pPoints);
 
 /* Jejak plasma di belakang pesawat saat melaju. */
-const TMAX = LOW_POWER ? 70 : 140;
+const TMAX = LOW_POWER ? 45 : 140;
 const tPos = new Float32Array(TMAX * 3);
 const tCol = new Float32Array(TMAX * 3);
 const trailGeo = new THREE.BufferGeometry();
@@ -2469,7 +2476,7 @@ function drawMinimap() {
     m.beginPath(); m.arc(x, y, e.type === 'boss' ? 7 : 4, 0, Math.PI * 2); m.fill();
   });
   m.fillStyle = '#38e8ff';
-  m.shadowColor = '#38e8ff'; m.shadowBlur = 12;
+  if (!LOW_POWER) { m.shadowColor = '#38e8ff'; m.shadowBlur = 12; }
   m.beginPath(); m.moveTo(168, 172); m.lineTo(158, 194); m.lineTo(178, 194); m.closePath(); m.fill();
   m.shadowBlur = 0;
   m.fillStyle = 'rgba(143,168,212,.9)';
@@ -2479,11 +2486,20 @@ function drawMinimap() {
 
 function loop(ts) {
   if (!running) return;
+  // Batasi frame di HP supaya GPU/CPU tidak bekerja 60×/detik terus-menerus.
+  if (FRAME_MS && ts - lastRender < FRAME_MS) {
+    requestAnimationFrame(loop);
+    return;
+  }
+  lastRender = ts;
   const dt = Math.min((ts - lastTime) / 1000, .05);
   lastTime = ts;
   if (!paused && !over) update(dt);
   syncMeshes(ts);
-  drawMinimap();
+  if (!MINI_MS || ts - lastMini >= MINI_MS) {
+    lastMini = ts;
+    drawMinimap();
+  }
   requestAnimationFrame(loop);
 }
 
@@ -2502,6 +2518,7 @@ $('btnStart').addEventListener('click', async () => {
     showPanel('gamePanel');
     resetGame();
     lastTime = performance.now();
+    lastRender = 0;
     requestAnimationFrame(loop);
   } catch (e) { setMsg($('lobbyMsg'), e.message, true); }
 });
