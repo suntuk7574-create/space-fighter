@@ -65,10 +65,10 @@ Untuk `DATABASE_URL`, `ADMIN_PASSWORD`, dan `ADMIN_SECRET`, isi langsung di dash
 
 Klik **Deploy**. Tunggu sampai status **Healthy / Live** (biasanya 2–5 menit).
 
-Setelah itu kamu dapat URL tetap seperti:
+Deploy sudah berhasil. URL tetap game kamu:
 
 ```text
-https://space-fighter-xxxxx.containers.snapdeploy.app
+https://space-fighter-2a6cb.containers.snapdeploy.app
 ```
 
 URL itu tidak berubah dan tetap jalan walaupun laptop dimatikan.
@@ -77,9 +77,9 @@ URL itu tidak berubah dan tetap jalan walaupun laptop dimatikan.
 
 | Alamat | Harapan |
 |---|---|
-| `https://...containers.snapdeploy.app/health` | `{"status":"ok","game":"Space Fighter"}` |
-| `https://...containers.snapdeploy.app/` | game tampil |
-| `https://...containers.snapdeploy.app/docs` | dokumentasi API |
+| `https://space-fighter-2a6cb.containers.snapdeploy.app/health` | `{"status":"ok","game":"Space Fighter"}` |
+| `https://space-fighter-2a6cb.containers.snapdeploy.app/` | game tampil |
+| `https://space-fighter-2a6cb.containers.snapdeploy.app/docs` | dokumentasi API |
 
 Coba daftar akun dari HP (tanpa laptop menyala). Kalau muncul di leaderboard, berhasil.
 
@@ -102,7 +102,7 @@ Setelah terhubung ke GitHub, setiap `git push` ke `main` otomatis redeploy.
 
 | Gejala | Apa yang dilakukan |
 |---|---|
-| Deploy failed, log `DATABASE_DRIVER_MISMATCH` | Pastikan `DATABASE_URL` dari Neon dan backend sudah pakai `pg8000` (sudah otomatis di repo). |
+| Deploy failed, log `unexpected keyword argument 'sslmode'` | Sudah diperbaiki di kode: `sslmode` dari Neon diterjemahkan otomatis ke `ssl_context` pg8000. Pastikan repo sudah pull commit terbaru. |
 | Health check gagal | Cek port 8000 dan Health Check Path `/health`. |
 | Web 503/loading lama | Container sedang bangun dari sleep. Tunggu ±1 menit. |
 | Error database | Cek project Neon tidak di-pause dan string DB masih benar. |
@@ -112,4 +112,4 @@ Setelah terhubung ke GitHub, setiap `git push` ke `main` otomatis redeploy.
 
 ## Setelah live
 
-Kirim URL `containers.snapdeploy.app`-nya ke saya. Nanti saya ganti link di `README.md`, cek `/health`, lalu commit + push.
+Health sudah dicek dan README sudah diperbarui dengan URL di atas. Setiap `git push` ke `main` otomatis redeploy.

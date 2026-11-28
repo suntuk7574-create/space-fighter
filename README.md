@@ -2,13 +2,13 @@
 
 Game **shoot-'em-up 3D** berbasis browser untuk tugas full-stack: **FastAPI + SQLAlchemy + PostgreSQL + Three.js**. Pemain mengendalikan spaceship dan mempertahankan orbit dari gelombang **kumbang alien**.
 
-> **Link publik tetap:** https://suntuk-space-fighter-2.loca.lt
+> **Link publik utama (cloud gratis, tanpa kartu):** https://space-fighter-2a6cb.containers.snapdeploy.app
 >
-> Menyalakan ulang: `.\scripts\start-fixed-link.ps1` (tanpa akun, tanpa kartu). URL tidak berubah walaupun laptop di-restart. Detail + cara mengatasi halaman "Tunnel website ahead": `PANDUAN-LINK-MENETAP.md`.
+> Jalan di SnapDeploy + Neon, jadi **tidak bergantung laptop**. Paket gratis tidur setelah ±15 menit sepi dan bangun ±1 menit saat dibuka. Cek health: `https://space-fighter-2a6cb.containers.snapdeploy.app/health` → `{"status":"ok","game":"Space Fighter"}`. Mau 24/7 tanpa menunggu: Sprint Pack $1 sekali (24 jam) atau Always-On $12/bulan. Detail: `PANDUAN-SNAPDEPLOY.md`.
+>
+> **Link cadangan dari laptop:** https://suntuk-space-fighter-2.loca.lt — nyalakan ulang dengan `.\scripts\start-fixed-link.ps1` (tanpa akun, tanpa kartu). Detail + cara mengatasi halaman "Tunnel website ahead": `PANDUAN-LINK-MENETAP.md`.
 >
 > **Pasang di HP (PWA):** buka link di Chrome → menu ⋮ → **Add to Home Screen / Install app**. Ikon dan layar fullscreen sudah disiapkan (`manifest.json`, `sw.js`, `frontend/icons/`). Cara lengkap ada di `PANDUAN-LINK-MENETAP.md` bagian "Pasang di HP".
->
-> **Tanpa bergantung laptop (cloud gratis, tanpa kartu):** ikuti `PANDUAN-SNAPDEPLOY.md` — Neon (DB) + SnapDeploy (app). URL permanen `*.containers.snapdeploy.app`; gratis tidur setelah ±15 menit idle dan bangun ±1 menit saat dibuka. Mau 24/7 tanpa menunggu: Sprint Pack $1 sekali (24 jam) atau Always-On $12/bulan.
 >
 > Link lama Cloudflare (`trycloudflare.com`) sudah tidak dipakai. Alternatif ngrok ada di `scripts/start-fixed-link-ngrok.ps1`; opsi Render ada di `DEPLOY.md` + `render.yaml` (kartu hanya verifikasi, tapi bisa dilewati dengan SnapDeploy).
 >
